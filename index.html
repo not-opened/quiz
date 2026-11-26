@@ -195,7 +195,7 @@
 
       <button class="share-btn" id="shareBtn" type="button">📋 결과 복사 / 공유하기</button>
       <button class="next-btn" id="nextSetBtn" style="display:block; margin-top:8px;" type="button">⚡ 다음 미풀이 5문항 도전</button>
-      <button class="next-btn" id="restartBtn" style="display:block; margin-top:8px;" type="button">🔄 이번 세트 다시 도전하기</button>
+      <button class="next-btn btn-secondary" id="restartBtn" style="display:block; margin-top:8px;" type="button">🔄 이번 세트 다시 도전하기</button>
 
       <!-- Cross Promotion Section -->
       <nav class="cross-promo" aria-label="notopened의 다른 콘텐츠">
@@ -219,6 +219,14 @@
       </nav>
     </section>
 
+    <!-- 쿠팡 파트너스 다이나믹 배너 (not-opened.github.io/quiz 등록분) -->
+    <section class="affiliate-section" id="affiliateSection" aria-label="쿠팡 파트너스 추천 상품" hidden>
+      <div class="coupang-wrap" id="coupangWrap">
+        <div class="coupang-slot" id="coupangSlot"></div>
+      </div>
+      <p class="affiliate-note">이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.</p>
+    </section>
+
     <footer class="portal-footer">
       <div class="footer-links">
         <a href="./privacy.html" class="footer-link">개인정보처리방침</a>
@@ -228,6 +236,7 @@
         <a href="https://not-opened.github.io/fortune/" class="footer-link" rel="noopener noreferrer">사주·꿈풀이</a>
         <a href="https://not-opened.github.io/go-chess/" class="footer-link" rel="noopener noreferrer">바둑·체스 한 수</a>
       </nav>
+      <p>하단 제휴 배너는 쿠팡 파트너스 활동입니다.</p>
       <p>&copy; 2026 notopened AI ENTERPRISE. All rights reserved.</p>
     </footer>
   </main>
@@ -235,5 +244,43 @@
   <div class="toast" id="toast" role="alert" aria-live="assertive">결과가 클립보드에 복사되었습니다!</div>
 
   <script type="module" src="./src/app.js"></script>
+
+  <!-- 쿠팡 파트너스 다이나믹 배너: 680px 위젯을 화면 폭에 맞춰 축소 (가로 오버플로 0) -->
+  <script>
+  (function () {
+    function fitCoupangBanner() {
+      var section = document.getElementById('affiliateSection');
+      var wrap = document.getElementById('coupangWrap');
+      var slot = document.getElementById('coupangSlot');
+      if (!section || !wrap || !slot) return;
+      var frame = slot.querySelector('iframe');
+      if (!frame) return;
+      var w = Number(frame.getAttribute('width')) || Number(frame.width) || 680;
+      var h = Number(frame.getAttribute('height')) || Number(frame.height) || 140;
+      if (!w || !h) return;
+      section.hidden = false;
+      var scale = Math.min(1, wrap.clientWidth / w);
+      slot.style.width = w + 'px';
+      slot.style.height = h + 'px';
+      slot.style.transform = 'scale(' + scale + ')';
+      wrap.style.height = Math.round(h * scale) + 'px';
+    }
+    window.fitCoupangBanner = fitCoupangBanner;
+    window.addEventListener('resize', fitCoupangBanner);
+    window.addEventListener('load', fitCoupangBanner);
+    [400, 1200, 2600, 4200, 8000].forEach(function (t) { window.setTimeout(fitCoupangBanner, t); });
+  })();
+  </script>
+  <script src="https://ads-partners.coupang.com/g.js"></script>
+  <script>
+  (function () {
+    if (!window.PartnersCoupang || typeof window.PartnersCoupang.G !== 'function') return;
+    try {
+      new PartnersCoupang.G({"id":1059927,"template":"carousel","trackingCode":"AF2725831","width":"680","height":"140","tsource":"","container":"#coupangSlot","onLoaded":function(hasAd){
+        if (hasAd && typeof window.fitCoupangBanner === 'function') window.fitCoupangBanner();
+      }});
+    } catch (e) { /* 배너를 그리지 못하면 영역도 숨김 유지 */ }
+  })();
+  </script>
 </body>
 </html>

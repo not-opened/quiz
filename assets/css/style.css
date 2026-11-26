@@ -246,6 +246,28 @@ header p {
   display: block;
 }
 
+/* 결과 화면 보조 버튼: 주 동작(다음 미풀이)을 가리지 않게 낮춘 비중 */
+.next-btn.btn-secondary {
+  background: #1e293b;
+  border: 1.5px solid var(--border);
+  color: #cbd5e1;
+  font-weight: 600;
+  font-size: 0.92rem;
+  box-shadow: none;
+}
+
+.next-btn.btn-secondary:hover {
+  border-color: var(--accent);
+  color: var(--text-main);
+}
+
+.next-btn.btn-secondary:active,
+.next-btn.btn-secondary.touch-active {
+  background: #273449;
+  transform: scale(0.98);
+  filter: none;
+}
+
 /* Result Screen */
 .result-screen {
   display: none;
@@ -588,6 +610,49 @@ header p {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+/* 쿠팡 파트너스 다이나믹 배너: 680px 위젯을 화면 폭에 맞춤 (가로 오버플로 0) */
+.affiliate-section {
+  margin: 0;
+}
+
+.affiliate-section[hidden] {
+  display: none;
+}
+
+.coupang-wrap {
+  max-width: 100%;
+  overflow: hidden;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.coupang-slot {
+  transform-origin: top left;
+}
+
+.affiliate-note {
+  font-size: 0.69rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin-top: 6px;
+  text-align: left;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* 한국어 어절 중간 줄바꿈 방지 (좁은 화면에서는 overflow-wrap이 받아 줌) */
+.question-text,
+.option-btn,
+.explanation-box,
+.rank-desc,
+.completion-banner,
+.web-card-body p,
+.portal-footer p {
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .footer-links {

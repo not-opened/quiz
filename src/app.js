@@ -324,6 +324,7 @@ function selectOption(selectedIdx) {
   touchStreak();
   saveProgress();
   renderStats();
+  renderFilterNotice();
 
   const expBox = document.getElementById('explanationBox');
   const expResult = document.getElementById('expResult');
@@ -423,8 +424,8 @@ function renderResultStats() {
   if (nextSetBtn) {
     if (remaining === 0) {
       nextSetBtn.textContent = activeCategory
-        ? `🔄 ‘${categoryLabel(activeCategory)}’ 새 순환 시작하기`
-        : `🔄 새 순환 시작하기 (${CYCLE_SIZE}문항)`;
+        ? `✨ ‘${categoryLabel(activeCategory)}’ 새 순환 시작하기`
+        : `✨ 새 순환 시작하기 (${CYCLE_SIZE}문항)`;
     } else {
       nextSetBtn.textContent = `⚡ 다음 미풀이 ${Math.min(ROUND_SIZE, remaining)}문항 도전 (남은 ${remaining}문항)`;
     }
