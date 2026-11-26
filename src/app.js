@@ -1,44 +1,249 @@
-const CANONICAL_SHARE_URL = 'https://penta309.github.io/notopened-quiz/';
-
-// Post-launch store URLs (set to null while pre-launch per BIZ-FOCUS policy)
-export const GAME_STORE_LINKS = Object.freeze({
-  '001': null,
-  '002': null,
-  '003': null
-});
-import { quizData } from './data.js';
+import { quizData, QUIZ_CATEGORIES } from './data.js';
 import { initTouchInteractions } from './touchHandler.js';
 
+const SHARE_BASE_URL = 'https://not-opened.github.io/quiz/';
+const STORAGE_KEY = 'notopened.quiz.progress.v1';
 const ROUND_SIZE = 5;
-let roundOffset = 0;
+const CYCLE_SIZE = quizData.length;
+
+const progress = loadProgress();
+const activeCategory = resolveCategory();
+let round = [];
+let roundCycleReset = false;
 let currentIdx = 0;
 let score = 0;
 let answered = false;
 
-export function initApp() {
-  initTouchInteractions();
-  renderQuestion();
-  setupEventListeners();
+/* ---------------------------------------------------------------- 상태 저장 */
+
+function emptyProgress() {
+  return {
+    solved: [],
+    cycle: 1,
+    totalAnswered: 0,
+    totalCorrect: 0,
+    bestScore: 0,
+    bestRound: 0,
+    streakDays: 0,
+    lastPlayDate: null
+  };
 }
 
-function getCurrentQuestion() {
-  return quizData[(roundOffset + currentIdx) % quizData.length];
+function loadProgress() {
+  const base = emptyProgress();
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return base;
+    const saved = JSON.parse(raw) || {};
+    const validIds = new Set(quizData.map(q => q.id));
+    return {
+      solved: Array.isArray(saved.solved) ? [...new Set(saved.solved.filter(id => validIds.has(id)))] : [],
+      cycle: Number(saved.cycle) >= 1 ? Math.floor(Number(saved.cycle)) : 1,
+      totalAnswered: Math.max(0, Math.floor(Number(saved.totalAnswered) || 0)),
+      totalCorrect: Math.max(0, Math.floor(Number(saved.totalCorrect) || 0)),
+      bestScore: Math.max(0, Math.floor(Number(saved.bestScore) || 0)),
+      bestRound: Math.max(0, Math.floor(Number(saved.bestRound) || 0)),
+      streakDays: Math.max(0, Math.floor(Number(saved.streakDays) || 0)),
+      lastPlayDate: typeof saved.lastPlayDate === 'string' ? saved.lastPlayDate : null
+    };
+  } catch (e) {
+    return base;
+  }
+}
+
+function saveProgress() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+  } catch (e) { /* 저장소를 쓸 수 없는 환경(사생활 보호 모드 등)에서도 퀴즈는 계속 진행 */ }
+}
+
+/* ------------------------------------------------------------ 날짜 · 연속 일수 */
+
+function localDateKey(d) {
+  const t = d || new Date();
+  return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+}
+
+function daysBetween(fromKey, toKey) {
+  const [fy, fm, fd] = fromKey.split('-').map(Number);
+  const [ty, tm, td] = toKey.split('-').map(Number);
+  return Math.round((Date.UTC(ty, tm - 1, td) - Date.UTC(fy, fm - 1, fd)) / 86400000);
+}
+
+function touchStreak() {
+  const today = localDateKey();
+  if (progress.lastPlayDate === today) return;
+  if (progress.lastPlayDate && daysBetween(progress.lastPlayDate, today) === 1) {
+    progress.streakDays = Math.max(1, progress.streakDays) + 1;
+  } else {
+    progress.streakDays = 1;
+  }
+  progress.lastPlayDate = today;
+}
+
+/* ------------------------------------------------------------------ 주제 · 풀 */
+
+function resolveCategory() {
+  try {
+    const cat = (new URLSearchParams(window.location.search).get('cat') || '').trim().toLowerCase();
+    return QUIZ_CATEGORIES.some(c => c.slug === cat) ? cat : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function categoryLabel(slug) {
+  const found = QUIZ_CATEGORIES.find(c => c.slug === slug);
+  return found ? found.label : '';
+}
+
+function currentPool() {
+  return activeCategory ? quizData.filter(q => q.slug === activeCategory) : quizData.slice();
+}
+
+function solvedCountInPool() {
+  const pool = currentPool();
+  const solved = new Set(progress.solved);
+  return pool.filter(q => solved.has(q.id)).length;
+}
+
+function unsolvedInPool() {
+  const solved = new Set(progress.solved);
+  return currentPool().filter(q => !solved.has(q.id));
+}
+
+function shuffle(list) {
+  const arr = list.slice();
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function startRound() {
+  const pool = currentPool();
+  roundCycleReset = false;
+  let unsolved = unsolvedInPool();
+
+  if (unsolved.length === 0) {
+    // 풀을 모두 소진 → 푼 기록을 초기화하고 새 순환 시작
+    if (activeCategory) {
+      const ids = new Set(pool.map(q => q.id));
+      progress.solved = progress.solved.filter(id => !ids.has(id));
+    } else {
+      progress.solved = [];
+      progress.cycle += 1;
+    }
+    unsolved = pool.slice();
+    roundCycleReset = true;
+  }
+
+  round = shuffle(unsolved).slice(0, Math.min(ROUND_SIZE, unsolved.length));
+  currentIdx = 0;
+  score = 0;
+  answered = false;
+  saveProgress();
+}
+
+function cycleResetMessage() {
+  return activeCategory
+    ? `‘${categoryLabel(activeCategory)}’ 문항을 모두 완주! 이 주제의 새 순환을 시작합니다`
+    : `모든 ${CYCLE_SIZE}문항 완주! 새 순환을 시작합니다`;
+}
+
+/* -------------------------------------------------------------------- 화면 */
+
+export function initApp() {
+  initTouchInteractions();
+  renderCatChips();
+  setCategoryMeta();
+  startRound();
+  renderQuestion();
+  renderStats();
+  renderFilterNotice();
+  setupEventListeners();
+
+  if (roundCycleReset) {
+    setTimeout(() => showToast(cycleResetMessage()), 400);
+  }
+}
+
+function setCategoryMeta() {
+  if (!activeCategory) return;
+  const label = categoryLabel(activeCategory);
+  document.title = `${label} · notopened 1일 1상식 두뇌 퀴즈`;
+}
+
+function renderCatChips() {
+  const wrap = document.getElementById('catChips');
+  if (!wrap) return;
+  const chips = QUIZ_CATEGORIES.map(c => {
+    const active = c.slug === activeCategory;
+    const count = quizData.filter(q => q.slug === c.slug).length;
+    return `<a class="cat-chip${active ? ' active' : ''}" href="?cat=${c.slug}"${active ? ' aria-current="true"' : ''}>`
+      + `${c.label}<span class="cat-chip-count">${count}</span></a>`;
+  });
+  if (activeCategory) {
+    chips.unshift('<a class="cat-chip cat-chip-all" href="./">전체</a>');
+  }
+  wrap.innerHTML = chips.join('');
+}
+
+function renderFilterNotice() {
+  const box = document.getElementById('filterNotice');
+  if (!box) return;
+  if (!activeCategory) {
+    box.hidden = true;
+    box.innerHTML = '';
+    return;
+  }
+  const remaining = unsolvedInPool().length;
+  box.hidden = false;
+  box.innerHTML = `<span class="filter-tag">주제 · ${categoryLabel(activeCategory)}</span>`
+    + `<span class="filter-sub">이 주제 ${currentPool().length}문항 · 미풀이 ${remaining}문항</span>`
+    + '<a class="filter-link" href="./">전체 주제로 보기 →</a>';
+}
+
+function renderStats() {
+  const bar = document.getElementById('statsBar');
+  if (!bar) return;
+  const pool = currentPool();
+  const solved = solvedCountInPool();
+  const pills = [];
+
+  if (progress.streakDays > 0) {
+    pills.push(`<span class="stat-pill">🔥 연속 <strong>${progress.streakDays}일</strong></span>`);
+  }
+  if (progress.totalAnswered > 0) {
+    pills.push(`<span class="stat-pill">📚 누적 <strong>${progress.totalAnswered}문제</strong></span>`);
+  }
+  if (progress.bestRound > 0) {
+    pills.push(`<span class="stat-pill">🏆 최고 <strong>${progress.bestScore}/${progress.bestRound}</strong></span>`);
+  }
+  pills.push(`<span class="stat-pill">🎯 ${activeCategory ? '이 주제' : '이번 순환'} <strong>${solved}/${pool.length}</strong></span>`);
+
+  bar.innerHTML = pills.join('');
+  bar.hidden = false;
 }
 
 function renderQuestion() {
   answered = false;
-  const q = getCurrentQuestion();
-  
+  const q = round[currentIdx];
+  if (!q) return;
+
   const categoryElem = document.getElementById('categoryText');
   const counterElem = document.getElementById('counterText');
   const questionElem = document.getElementById('questionText');
   const progressFill = document.getElementById('progressFill');
+  const progressBar = document.getElementById('progressBar');
 
   if (categoryElem) categoryElem.textContent = q.category;
-  if (counterElem) counterElem.textContent = `${currentIdx + 1} / ${ROUND_SIZE} (전체 ${quizData.length}문항 중 #${((roundOffset + currentIdx) % quizData.length) + 1})`;
+  if (counterElem) counterElem.textContent = `${currentIdx + 1} / ${round.length}`;
   if (questionElem) questionElem.textContent = q.question;
-  if (progressFill) progressFill.style.width = `${((currentIdx + 1) / ROUND_SIZE) * 100}%`;
-  
+  if (progressFill) progressFill.style.width = `${((currentIdx + 1) / round.length) * 100}%`;
+  if (progressBar) progressBar.setAttribute('aria-valuenow', String(Math.round(((currentIdx + 1) / round.length) * 100)));
+
   const expBox = document.getElementById('explanationBox');
   const nextBtn = document.getElementById('nextBtn');
   if (expBox) expBox.className = 'explanation-box';
@@ -57,13 +262,17 @@ function renderQuestion() {
       grid.appendChild(btn);
     });
   }
+
+  const quizCard = document.getElementById('quizCard');
+  if (quizCard) quizCard.style.display = 'block';
 }
 
 function selectOption(selectedIdx) {
   if (answered) return;
   answered = true;
 
-  const q = getCurrentQuestion();
+  const q = round[currentIdx];
+  if (!q) return;
   const buttons = document.querySelectorAll('.option-btn');
   const isCorrect = (selectedIdx === q.answer);
 
@@ -78,31 +287,39 @@ function selectOption(selectedIdx) {
 
   if (isCorrect) score++;
 
+  // 재방문 기록: 푼 문항 ID · 누적 풀이 · 연속 도전 일수
+  if (!progress.solved.includes(q.id)) progress.solved.push(q.id);
+  progress.totalAnswered += 1;
+  if (isCorrect) progress.totalCorrect += 1;
+  touchStreak();
+  saveProgress();
+  renderStats();
+
   const expBox = document.getElementById('explanationBox');
   const expResult = document.getElementById('expResult');
   const expText = document.getElementById('expText');
-  
+
   if (expResult) {
-    expResult.textContent = isCorrect ? "✅ 정답" : "❌ 오답";
-    expResult.style.color = isCorrect ? "var(--correct)" : "var(--wrong)";
+    expResult.textContent = isCorrect ? '✅ 정답' : '❌ 오답';
+    expResult.style.color = isCorrect ? 'var(--correct)' : 'var(--wrong)';
   }
   if (expText) expText.textContent = `${q.explanation} [출처: ${q.source}]`;
   if (expBox) expBox.classList.add('show');
 
   const nextBtn = document.getElementById('nextBtn');
   if (nextBtn) {
-    nextBtn.textContent = (currentIdx === ROUND_SIZE - 1) ? "결과 보기" : "다음 문제로";
+    nextBtn.textContent = (currentIdx === round.length - 1) ? '결과 보기' : '다음 문제로';
     nextBtn.classList.add('show');
     setTimeout(() => {
       try {
         nextBtn.focus();
-      } catch (e) {}
+      } catch (e) { /* 포커스 실패는 무시 */ }
     }, 200);
   }
 }
 
 export function nextQuestion() {
-  if (currentIdx < ROUND_SIZE - 1) {
+  if (currentIdx < round.length - 1) {
     currentIdx++;
     renderQuestion();
   } else {
@@ -114,23 +331,85 @@ function showResults() {
   const quizCard = document.getElementById('quizCard');
   const resultCard = document.getElementById('resultCard');
   if (quizCard) quizCard.style.display = 'none';
-  if (resultCard) resultCard.classList.add('show');
+  if (resultCard) {
+    resultCard.classList.add('show');
+    try {
+      resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (e) { /* 구버전 브라우저는 무시 */ }
+  }
 
   const finalScoreElem = document.getElementById('finalScore');
   if (finalScoreElem) finalScoreElem.textContent = score;
-  
+  const finalTotalElem = document.getElementById('scoreTotal');
+  if (finalTotalElem) finalTotalElem.textContent = `/ ${round.length} 점`;
+
   const rankTitle = document.getElementById('rankTitle');
   const rankDesc = document.getElementById('rankDesc');
+  const full = round.length;
 
-  if (score === 5) {
-    if (rankTitle) rankTitle.textContent = "🏆 0.1% 상식 브레인 마스터!";
-    if (rankDesc) rankDesc.textContent = "5문항을 모두 완벽하게 맞추셨습니다. 상식 내공이 대단합니다!";
-  } else if (score >= 3) {
-    if (rankTitle) rankTitle.textContent = "🥈 스마트한 상식 탐험가!";
-    if (rankDesc) rankDesc.textContent = "뛰어난 상식 감각을 가지고 계십니다. 다음 5문항 세트도 도전해보세요!";
+  if (score === full) {
+    if (rankTitle) rankTitle.textContent = '🏆 0.1% 상식 브레인 마스터!';
+    if (rankDesc) rankDesc.textContent = '이번 세트를 모두 완벽하게 맞추셨습니다. 상식 내공이 대단합니다!';
+  } else if (score / full >= 0.6) {
+    if (rankTitle) rankTitle.textContent = '🥈 스마트한 상식 탐험가!';
+    if (rankDesc) rankDesc.textContent = '뛰어난 상식 감각을 가지고 계십니다. 다음 세트도 도전해보세요!';
   } else {
-    if (rankTitle) rankTitle.textContent = "🥉 상식 호기심 가득한 루키!";
-    if (rankDesc) rankDesc.textContent = "새로운 지식을 채우는 재미를 느껴보세요. 다음 세트도 도전!";
+    if (rankTitle) rankTitle.textContent = '🥉 상식 호기심 가득한 루키!';
+    if (rankDesc) rankDesc.textContent = '새로운 지식을 채우는 재미를 느껴보세요. 다음 세트도 도전!';
+  }
+
+  // 최고 점수 갱신 (세트 정답률 기준)
+  const rate = full ? score / full : 0;
+  const bestRate = progress.bestRound ? progress.bestScore / progress.bestRound : -1;
+  if (rate > bestRate) {
+    progress.bestScore = score;
+    progress.bestRound = full;
+  }
+  saveProgress();
+  renderStats();
+  renderResultStats();
+}
+
+function renderResultStats() {
+  const box = document.getElementById('resultStats');
+  const pool = currentPool();
+  const solved = solvedCountInPool();
+  const remaining = pool.length - solved;
+  const accuracy = progress.totalAnswered > 0
+    ? Math.round((progress.totalCorrect / progress.totalAnswered) * 100)
+    : 0;
+
+  if (box) {
+    box.innerHTML = `
+      <div class="result-stat"><span class="k">🔥 연속 도전</span><span class="v">${progress.streakDays}일</span></div>
+      <div class="result-stat"><span class="k">📚 누적 풀이</span><span class="v">${progress.totalAnswered}문제 · ${accuracy}%</span></div>
+      <div class="result-stat"><span class="k">🏆 최고 점수</span><span class="v">${progress.bestScore} / ${progress.bestRound}</span></div>
+      <div class="result-stat"><span class="k">🎯 ${activeCategory ? '이 주제' : '이번 순환'}</span><span class="v">${solved} / ${pool.length}문항</span></div>
+    `;
+  }
+
+  const nextSetBtn = document.getElementById('nextSetBtn');
+  if (nextSetBtn) {
+    if (remaining === 0) {
+      nextSetBtn.textContent = activeCategory
+        ? `🔄 ‘${categoryLabel(activeCategory)}’ 새 순환 시작하기`
+        : `🔄 새 순환 시작하기 (${CYCLE_SIZE}문항)`;
+    } else {
+      nextSetBtn.textContent = `⚡ 다음 미풀이 ${Math.min(ROUND_SIZE, remaining)}문항 도전 (남은 ${remaining}문항)`;
+    }
+  }
+
+  const banner = document.getElementById('completionBanner');
+  if (banner) {
+    if (remaining === 0) {
+      banner.hidden = false;
+      banner.textContent = activeCategory
+        ? `🎉 ‘${categoryLabel(activeCategory)}’ 문항을 모두 풀었습니다. 다음 세트에서 새 순환이 시작됩니다.`
+        : `🎉 모든 ${CYCLE_SIZE}문항 완주! 다음 세트에서 새 순환이 시작됩니다.`;
+    } else {
+      banner.hidden = true;
+      banner.textContent = '';
+    }
   }
 }
 
@@ -141,31 +420,49 @@ export function restartQuiz() {
   const resultCard = document.getElementById('resultCard');
   const quizCard = document.getElementById('quizCard');
   if (resultCard) resultCard.classList.remove('show');
-  if (quizCard) quizCard.style.display = 'block';
+  if (quizCard) {
+    quizCard.style.display = 'block';
+    try {
+      quizCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } catch (e) { /* 구버전 브라우저는 무시 */ }
+  }
   renderQuestion();
+  renderStats();
 }
 
 export function nextRoundSet() {
-  roundOffset = (roundOffset + ROUND_SIZE) % quizData.length;
+  startRound();
   restartQuiz();
-  showToast(`다음 5문항 세트(#${roundOffset + 1}~#${roundOffset + ROUND_SIZE})가 시작됩니다!`);
+  renderFilterNotice();
+  if (roundCycleReset) {
+    showToast(cycleResetMessage());
+  } else {
+    showToast(`아직 풀지 않은 ${round.length}문항으로 새 세트를 시작합니다!`);
+  }
+}
+
+/* -------------------------------------------------------------------- 공유 */
+
+function shareUrl() {
+  return activeCategory ? `${SHARE_BASE_URL}?cat=${activeCategory}` : SHARE_BASE_URL;
 }
 
 export async function shareResult() {
   const rankTitleElem = document.getElementById('rankTitle');
-  const rank = rankTitleElem ? rankTitleElem.textContent : "상식 퀴즈 도전자";
-  const shareUrl = CANONICAL_SHARE_URL;
-  const nativeShareText = `[notopened 상식 퀴즈] 5문제 중 ${score}문제를 맞췄습니다!\n나의 등급: ${rank}\n지금 바로 도전해보세요! #notopened #상식퀴즈`;
-  const clipboardShareText = `[notopened 상식 퀴즈] 5문제 중 ${score}문제를 맞췄습니다!\n나의 등급: ${rank}\n도전하기 👉 ${shareUrl}\n#notopened #상식퀴즈`;
-  
+  const rank = rankTitleElem ? rankTitleElem.textContent : '상식 퀴즈 도전자';
+  const url = shareUrl();
+  const streakLine = progress.streakDays > 1 ? `\n🔥 연속 ${progress.streakDays}일째 도전 중!` : '';
+  const nativeShareText = `[notopened 상식 퀴즈] ${round.length}문제 중 ${score}문제를 맞췄습니다!\n나의 등급: ${rank}${streakLine}\n지금 바로 도전해보세요! #notopened #상식퀴즈`;
+  const clipboardShareText = `[notopened 상식 퀴즈] ${round.length}문제 중 ${score}문제를 맞췄습니다!\n나의 등급: ${rank}${streakLine}\n도전하기 👉 ${url}\n#notopened #상식퀴즈`;
+
   if (navigator.share) {
     try {
       await navigator.share({
         title: 'notopened 1일 1상식 두뇌 퀴즈',
         text: nativeShareText,
-        url: shareUrl
+        url: url
       });
-      showToast("공유되었습니다!");
+      showToast('공유되었습니다!');
       return;
     } catch (err) {
       if (err.name === 'AbortError') return;
@@ -174,7 +471,7 @@ export async function shareResult() {
 
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(clipboardShareText).then(() => {
-      showToast("결과가 클립보드에 복사되었습니다!");
+      showToast('결과가 클립보드에 복사되었습니다!');
     }).catch(() => {
       fallbackCopyText(clipboardShareText);
     });
@@ -184,23 +481,23 @@ export async function shareResult() {
 }
 
 function fallbackCopyText(text) {
-  const textArea = document.createElement("textarea");
+  const textArea = document.createElement('textarea');
   textArea.value = text;
-  textArea.style.position = "fixed";
-  textArea.style.top = "0";
-  textArea.style.left = "0";
+  textArea.style.position = 'fixed';
+  textArea.style.top = '0';
+  textArea.style.left = '0';
   document.body.appendChild(textArea);
   textArea.focus();
   textArea.select();
   try {
     const successful = document.execCommand('copy');
     if (successful) {
-      showToast("결과가 클립보드에 복사되었습니다!");
+      showToast('결과가 클립보드에 복사되었습니다!');
     } else {
-      showToast("클립보드 복사에 실패했습니다. 주소창 URL을 직접 공유해주세요.");
+      showToast('클립보드 복사에 실패했습니다. 주소창 URL을 직접 공유해주세요.');
     }
   } catch (err) {
-    showToast("클립보드 복사 권한이 필요합니다.");
+    showToast('클립보드 복사 권한이 필요합니다.');
   }
   document.body.removeChild(textArea);
 }
@@ -211,29 +508,11 @@ export function showToast(msg) {
     toast.textContent = msg;
     toast.classList.add('show');
     clearTimeout(window._toastTimer);
-    window._toastTimer = setTimeout(() => toast.classList.remove('show'), 2500);
+    window._toastTimer = setTimeout(() => toast.classList.remove('show'), 2800);
   }
 }
 
-function handleGamePromo(e) {
-  const btn = e.target.closest('.game-link-btn');
-  if (!btn) return;
-  const gameId = btn.getAttribute('data-game');
-  const storeUrl = GAME_STORE_LINKS[gameId];
-  if (storeUrl) {
-    window.open(storeUrl, '_blank', 'noopener,noreferrer');
-    return;
-  }
-  if (gameId === '001') {
-    showToast("GAME #001 '네온 퀴즈 러시 (Neon Quiz Rush)' — Google Play 스토어 출시 예정입니다!");
-  } else if (gameId === '002') {
-    showToast("GAME #002 '퀴즈 머신 (Quiz Machine)' — Google Play 스토어 출시 예정입니다!");
-  } else if (gameId === '003') {
-    showToast("GAME #003 '낫 플로우 (Knot Flow)' — Google Play 스토어 출시 예정입니다!");
-  } else {
-    showToast("notopened 패밀리 게임 스토어 출시 예정입니다!");
-  }
-}
+/* ------------------------------------------------------------------ 이벤트 */
 
 function setupEventListeners() {
   const nextBtn = document.getElementById('nextBtn');
@@ -247,15 +526,14 @@ function setupEventListeners() {
 
   const shareBtn = document.getElementById('shareBtn');
   if (shareBtn) shareBtn.addEventListener('click', shareResult);
-
-  const crossPromo = document.querySelector('.cross-promo');
-  if (crossPromo) {
-    crossPromo.addEventListener('click', handleGamePromo);
-  }
 }
 
 if (typeof window !== 'undefined') {
-  window.addEventListener('DOMContentLoaded', initApp);
+  if (document.readyState === 'loading') {
+    window.addEventListener('DOMContentLoaded', initApp);
+  } else {
+    initApp();
+  }
   window.nextQuestion = nextQuestion;
   window.restartQuiz = restartQuiz;
   window.nextRoundSet = nextRoundSet;

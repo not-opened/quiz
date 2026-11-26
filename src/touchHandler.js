@@ -3,7 +3,7 @@
  * Provides immediate touch feedback, prevents ghost clicks, and ensures WCAG mobile compliance.
  */
 export function initTouchInteractions() {
-  const interactiveSelector = '.option-btn, .next-btn, .share-btn, .game-link-btn, .footer-link';
+  const interactiveSelector = '.option-btn, .next-btn, .share-btn, .game-link-btn, .footer-link, .cat-chip, .web-card';
 
   // Add active state styling dynamically on touch devices
   document.addEventListener('touchstart', (e) => {

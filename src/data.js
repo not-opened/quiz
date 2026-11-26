@@ -1,10 +1,22 @@
 /**
- * notopened Quiz Portal - 30 Verified Master Questions (v1.2.0 AdSense Ready)
+ * notopened Quiz Portal - 30 Verified Master Questions
  * Curated & Fact-Checked by notopened content team
+ *
+ * slug: 주제별 딥링크(?cat=...) 키. 문항마다 하나씩 지정.
  */
+export const QUIZ_CATEGORIES = Object.freeze([
+  { slug: 'science', label: '과학·물리' },
+  { slug: 'history', label: '역사·문화' },
+  { slug: 'world', label: '세계·지리' },
+  { slug: 'health', label: '건강·인체' },
+  { slug: 'nature', label: '동물·자연' },
+  { slug: 'life', label: '생활·경제' }
+]);
+
 export const quizData = [
   {
     id: "quiz-001",
+    slug: "science",
     category: "항공 / 과학 상식 (OX)",
     question: "비행기 객실 창문 아래쪽에 뚫려 있는 아주 작은 구멍은 창문이 깨졌을 때 바로 추락하는 것을 방지하기 위한 기압 조절용이다?",
     options: ["O (그렇다)", "X (아니다)"],
@@ -14,6 +26,7 @@ export const quizData = [
   },
   {
     id: "quiz-002",
+    slug: "science",
     category: "물리 / 생활 과학 (2D 박스)",
     question: "동일한 부피(1L)를 기준으로 비교했을 때, 얼음과 물 중 질량이 더 무거운 것은 무엇일까요?",
     options: ["얼음", "물", "둘 다 똑같다", "온도에 따라 항상 바뀐다"],
@@ -23,6 +36,7 @@ export const quizData = [
   },
   {
     id: "quiz-003",
+    slug: "history",
     category: "조선 역사 상식",
     question: "조선시대 왕들의 일거수일투족을 기록했던 사관들의 사초(史草)는 국왕이라도 절대 열람할 수 없었다?",
     options: ["O (국왕도 볼 수 없었다)", "X (국왕은 언제든 열람 가능했다)"],
@@ -32,6 +46,7 @@ export const quizData = [
   },
   {
     id: "quiz-004",
+    slug: "science",
     category: "지구과학 상식",
     question: "천연 물질 중 모스 굳기계(경도)에서 가장 단단한 표준 10에 해당하는 광물은 무엇일까요?",
     options: ["석영(쿼츠)", "강옥(루비/사파이어)", "금강석(다이아몬드)", "황옥(토파즈)"],
@@ -41,6 +56,7 @@ export const quizData = [
   },
   {
     id: "quiz-005",
+    slug: "world",
     category: "글로벌 지리 상식",
     question: "지구상에서 '가장 넓은 면적'을 차지하는 사막은 어디일까요?",
     options: ["사하라 사막", "남극 사막", "아라비아 사막", "고비 사막"],
@@ -50,6 +66,7 @@ export const quizData = [
   },
   {
     id: "quiz-006",
+    slug: "health",
     category: "인체 / 건강 상식 (OX)",
     question: "커피나 탄산음료를 마신 직후 1분 안에 바로 양치질을 하면 치아 건강에 더 좋다?",
     options: ["O (즉시 닦는 게 좋다)", "X (치아 표면이 마모될 수 있다)"],
@@ -59,6 +76,7 @@ export const quizData = [
   },
   {
     id: "quiz-007",
+    slug: "nature",
     category: "동물 / 생물 상식 (OX)",
     question: "금붕어의 기억력은 정말로 '단 3초'뿐이어서 돌아서면 모든 것을 잊어버릴까요?",
     options: ["O (3초면 잊어버린다)", "X (수개월 이상 기억한다)"],
@@ -68,6 +86,7 @@ export const quizData = [
   },
   {
     id: "quiz-008",
+    slug: "science",
     category: "우주 / 천문 상식",
     question: "태양계 행성 중 표면 온도가 약 460℃ 이상으로 '가장 뜨거운 행성'은 어디일까요?",
     options: ["수성", "금성", "화성", "목성"],
@@ -77,6 +96,7 @@ export const quizData = [
   },
   {
     id: "quiz-009",
+    slug: "health",
     category: "뇌과학 상식 (OX)",
     question: "인간은 평생 자기 뇌 기능의 단 10%만 사용하며, 나머지 90%는 잠들어 있다는 속설은 과학적 사실일까요?",
     options: ["O (10%만 사용한다)", "X (뇌 전체 영역을 골고루 사용한다)"],
@@ -86,6 +106,7 @@ export const quizData = [
   },
   {
     id: "quiz-010",
+    slug: "history",
     category: "한국사 / 문화유산",
     question: "경주에 남아 있는 신라 시대의 가장 오래된 석탑으로, 돌을 벽돌 모양으로 깎아 쌓아 올린 국보 제30호는 무엇일까요?",
     options: ["다보탑", "석가탑", "분황사 모전석탑", "감은사지 삼층석탑"],
@@ -95,6 +116,7 @@ export const quizData = [
   },
   {
     id: "quiz-011",
+    slug: "science",
     category: "물리 / 낙하 실험 (2D 박스)",
     question: "공기 저항이 전혀 없는 진공 상태에서 10kg 쇠구슬과 1g 깃털을 같은 높이에서 동시에 떨어뜨리면 어떻게 될까요?",
     options: ["쇠구슬이 먼저 떨어진다", "깃털이 먼저 떨어진다", "정확히 동시에 바닥에 닿는다", "공중에 떠 있는다"],
@@ -104,6 +126,7 @@ export const quizData = [
   },
   {
     id: "quiz-012",
+    slug: "life",
     category: "생활 안전 / 과학 (OX)",
     question: "전자레인지에 알루미늄 포일이나 금속 숟가락을 넣고 돌리면 불꽃(스파크)이 튀며 화재 위험이 발생할 수 있다?",
     options: ["O (절대 넣으면 안 된다)", "X (아무 문제 없다)"],
@@ -113,6 +136,7 @@ export const quizData = [
   },
   {
     id: "quiz-013",
+    slug: "nature",
     category: "동물 생태 상식",
     question: "새우나 게처럼 붉은빛을 띠는 사료를 먹고 자라야만 깃털이 아름다운 분홍색으로 변하는 새는 무엇일까요?",
     options: ["백조(고니)", "홍학(플라밍고)", "펠리컨", "두루미"],
@@ -122,6 +146,7 @@ export const quizData = [
   },
   {
     id: "quiz-014",
+    slug: "history",
     category: "한국 전통 미술",
     question: "조선 후기에 제작된 유백색의 둥글고 넉넉한 형태를 지닌 백자로, 보름달을 닮았다고 하여 붙여진 이름은 무엇일까요?",
     options: ["청자 상감운학문 매병", "달항아리(백자 대호)", "분청사기 인화문 대접", "청화백자 십장생문 호"],
@@ -131,6 +156,7 @@ export const quizData = [
   },
   {
     id: "quiz-015",
+    slug: "health",
     category: "인체 생리학 상식",
     question: "우리 몸을 구성하는 장기 중 부피 대비 에너지를 가장 많이 소비하여 기초대사량의 약 20%를 혼자 쓰는 기관은 어디일까요?",
     options: ["위장", "폐", "뇌(Brain)", "피부"],
@@ -140,6 +166,7 @@ export const quizData = [
   },
   {
     id: "quiz-016",
+    slug: "history",
     category: "조선 과학 발명품",
     question: "세종대왕 시절 장영실 등이 제작한 해시계로, 가마솥 모양의 반구 안에 시각선과 절기선을 그려 누구나 시간을 알 수 있게 한 유물은?",
     options: ["자격루", "앙부일구", "혼천의", "측우기"],
@@ -149,6 +176,7 @@ export const quizData = [
   },
   {
     id: "quiz-017",
+    slug: "nature",
     category: "곤충 / 자연 과학",
     question: "겹눈 하나에 최대 약 2만~3만 개의 낱눈이 모여 있어 사실상 360도 전방위 시야를 감지할 수 있는 곤충은 무엇일까요?",
     options: ["개미", "잠자리", "무당벌레", "사슴벌레"],
@@ -158,6 +186,7 @@ export const quizData = [
   },
   {
     id: "quiz-018",
+    slug: "world",
     category: "글로벌 수도 퀴즈",
     question: "시드니나 멜버른으로 오해하기 쉽지만, 실제로 호주(오스트레일리아)의 공식 수도인 도시는 어디일까요?",
     options: ["시드니", "멜버른", "캔버라", "브리즈번"],
@@ -167,6 +196,7 @@ export const quizData = [
   },
   {
     id: "quiz-019",
+    slug: "world",
     category: "글로벌 수도 퀴즈",
     question: "토론토나 밴쿠버가 아닌, 캐나다의 실제 공식 수도는 어디일까요?",
     options: ["토론토", "밴쿠버", "오타와", "몬트리올"],
@@ -176,6 +206,7 @@ export const quizData = [
   },
   {
     id: "quiz-020",
+    slug: "science",
     category: "물리 / 광학 상식",
     question: "공작새 수컷의 화려한 청록색 깃털은 실제 색소 때문이 아니라 나노 구조가 빛을 반사하는 '구조색(Structural Color)' 때문이다?",
     options: ["O (빛의 간섭에 의한 구조색이다)", "X (파란색 물감 색소가 들어있다)"],
@@ -185,6 +216,7 @@ export const quizData = [
   },
   {
     id: "quiz-021",
+    slug: "life",
     category: "생활 경제 / 철도 상식",
     question: "코레일톡 앱으로 예매한 평일 일반 KTX 승차권을 열차 출발 '하루 전(1일 전)'에 취소하면 취소 위약금은 얼마일까요?",
     options: ["0원 (무료)", "400원", "운임의 5%", "운임의 10%"],
@@ -194,6 +226,7 @@ export const quizData = [
   },
   {
     id: "quiz-022",
+    slug: "life",
     category: "생활 법률 / 주거 상식",
     question: "전월세 계약 시 이사 당일 주민센터에서 '전입신고'와 '확정일자'를 받으면 주택임대차보호법상 대항력이 언제부터 발생할까요?",
     options: ["신청 즉시(당일 0시)", "다음 날 오전 0시", "3일 뒤 자정", "일주일 뒤"],
@@ -203,6 +236,7 @@ export const quizData = [
   },
   {
     id: "quiz-023",
+    slug: "history",
     category: "한국 건축 / 역사",
     question: "경복궁의 정문인 '광화문' 앞 양옆을 지키고 있는 상상의 동물 조각상으로, 선악을 구별하고 정의를 지키는 상징물은 무엇일까요?",
     options: ["기린", "해치(해태)", "현무", "주작"],
@@ -212,6 +246,7 @@ export const quizData = [
   },
   {
     id: "quiz-024",
+    slug: "nature",
     category: "식물 / 과일 상식",
     question: "단단한 붉은 껍질 안에 수백 개의 루비 같은 과육 알갱이가 들어 있어 다산과 풍요를 상징하는 가을 제철 과일은 무엇일까요?",
     options: ["무화과", "석류", "단감", "모과"],
@@ -221,6 +256,7 @@ export const quizData = [
   },
   {
     id: "quiz-025",
+    slug: "world",
     category: "국내 여행 / 제주 지리",
     question: "제주도 조천읍에 위치하며 에메랄드빛 얕은 수심과 하얀 모래사장, 그리고 옆에 솟은 '서우봉'으로 유명한 해수욕장은 어디일까요?",
     options: ["협재 해수욕장", "함덕 해수욕장", "중문 색달 해수욕장", "이호테우 해변"],
@@ -230,6 +266,7 @@ export const quizData = [
   },
   {
     id: "quiz-026",
+    slug: "science",
     category: "물리 / 부력 상식 (2D 박스)",
     question: "물이 가득 찬 컵에 떠 있는 얼음이 완전히 다 녹으면 컵의 물 높이는 어떻게 변할까요?",
     options: ["컵 밖으로 넘친다", "처음 높이와 거의 똑같다", "절반으로 줄어든다", "계속 오르락내리락한다"],
@@ -239,6 +276,7 @@ export const quizData = [
   },
   {
     id: "quiz-027",
+    slug: "science",
     category: "우주 / 물리 상식 (OX)",
     question: "우주 공간에서는 거대한 폭발이 일어나도 우리 귀에 아무런 소리가 들리지 않는다?",
     options: ["O (진공 상태라 소리가 전달되지 않는다)", "X (지구보다 훨씬 크게 들린다)"],
@@ -248,6 +286,7 @@ export const quizData = [
   },
   {
     id: "quiz-028",
+    slug: "nature",
     category: "동물 감각 상식",
     question: "토끼가 고개를 돌리지 않고도 등 뒤에서 다가오는 천적을 감지할 수 있는 이유는 눈의 시야각이 거의 몇 도에 달하기 때문일까요?",
     options: ["약 90도", "약 180도", "약 360도(전방위)", "약 45도"],
@@ -257,6 +296,7 @@ export const quizData = [
   },
   {
     id: "quiz-029",
+    slug: "health",
     category: "생활 건강검진 상식 (OX)",
     question: "건강검진(위내시경·혈액검사) 전날 밤 금식 시간에는 '아메리카노(블랙커피)'나 '녹차' 정도는 마셔도 괜찮을까요?",
     options: ["O (설탕이 없으니 괜찮다)", "X (위 점막 착색 및 수치 변화로 절대 금물)"],
@@ -266,6 +306,7 @@ export const quizData = [
   },
   {
     id: "quiz-030",
+    slug: "life",
     category: "디지털 보안 상식",
     question: "본인도 모르게 내 명의로 알뜰폰이나 신규 휴대전화가 개통되는 대포폰·보이스피싱 피해를 무료로 원천 차단해 주는 공공 서비스는?",
     options: ["엠세이퍼(M-Safer) 명의도용방지서비스", "정부24 전입신고", "홈택스 연말정산", "코레일톡 예약"],
