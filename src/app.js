@@ -1,7 +1,7 @@
 import { quizData, QUIZ_CATEGORIES } from './data.js';
 import { initTouchInteractions } from './touchHandler.js';
 
-const SHARE_BASE_URL = 'https://not-opened.github.io/quiz/';
+const SHARE_BASE_URL = 'https://notopened.com/quiz/';
 const STORAGE_KEY = 'notopened.quiz.progress.v1';
 const ROUND_SIZE = 5;
 const CYCLE_SIZE = quizData.length;

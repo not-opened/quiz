@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://not-opened.github.io/quiz/sitemap.xml
+Sitemap: https://notopened.com/quiz/sitemap.xml
