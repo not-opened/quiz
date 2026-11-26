@@ -2,7 +2,7 @@
 
 설치나 회원가입 없이 브라우저에서 바로 5문항 상식 퀴즈를 풀고, 결과를 공유할 수 있는 정적 웹 앱입니다.
 
-- 서비스 주소: https://not-opened.github.io/quiz/
+- 서비스 주소: https://notopened.com/quiz/
 - 공개 버전: v3.0 (쿠팡 파트너스 제휴 배너·개인정보처리방침 정리·버튼 위계·한국어 줄바꿈 다듬기)
 - 제작: notopened AI ENTERPRISE
 

@@ -1,7 +1,7 @@
 # QA — notopened 1일 1상식 두뇌 퀴즈 포털
 
 - 대상 버전: v3.0 (쿠팡 파트너스 다이나믹 배너·개인정보처리방침 정리·결과 버튼 위계·한국어 줄바꿈 보정)
-- 서비스 주소: https://not-opened.github.io/quiz/
+- 서비스 주소: https://notopened.com/quiz/
 - 검증 대상 사이트 커밋: `d1e79aad487a9ad758cef59259320ff4f052f1b4` (main, GitHub Pages `built`, 2026-11-26 21:59 KST)
 - 검증 일시: 2026-11-26 21:56~22:02 KST (라이브), 같은 코드로 로컬 320~1280px 폭 검사 병행
 - 검증 환경: headless Chromium 159.0.8154.6 — 모바일 390×844(터치·모바일 UA), 폭 320/360/390/414/768/1280
@@ -19,9 +19,9 @@
 | 7 | 새 순환 초기화 | 완주 후 `새 순환 시작하기` | PASS — `cycle 2`, `solved 0`부터 재집계, 누적 풀이 30 유지 |
 | 8 | 주제 딥링크 | `?cat=history`·`?cat=science`·`?cat=world`·`?cat=nope` | PASS — 각 주제 문항만 출제(역사·문화 5, 과학·물리 8, 세계·지리 4), 잘못된 값은 전체로 대체 |
 | 9 | 미풀이 수 표기 갱신 | 주제 화면에서 문제 풀이 후 필터 안내 확인 | PASS — `미풀이 N문항`이 답할 때마다 즉시 갱신(v3.0 수정) |
-| 10 | 결과 공유 | `결과 복사 / 공유하기` 클릭 후 클립보드 읽기 | PASS — `[notopened 상식 퀴즈] 5문제 중 3문제를 맞췄습니다! … 도전하기 👉 https://not-opened.github.io/quiz/` |
-| 11 | 주제 공유 URL | `?cat=` 진입 후 `SHARE_BASE_URL` 확인 | PASS — `https://not-opened.github.io/quiz/?cat=<주제>` (주제 없으면 기본 주소) |
-| 12 | 2·3호 바로가기 | 결과 카드·푸터 링크 `href` | PASS — `not-opened.github.io/go-chess/`, `not-opened.github.io/fortune/` |
+| 10 | 결과 공유 | `결과 복사 / 공유하기` 클릭 후 클립보드 읽기 | PASS — `[notopened 상식 퀴즈] 5문제 중 3문제를 맞췄습니다! … 도전하기 👉 https://notopened.com/quiz/` |
+| 11 | 주제 공유 URL | `?cat=` 진입 후 `SHARE_BASE_URL` 확인 | PASS — `https://notopened.com/quiz/?cat=<주제>` (주제 없으면 기본 주소) |
+| 12 | 2·3호 바로가기 | 결과 카드·푸터 링크 `href` | PASS — `notopened.com/go-chess/`, `notopened.com/fortune/` |
 | 13 | 쿠팡 파트너스 배너 로드 | 하단 `#coupangSlot` iframe 확인 | PASS — `ads-partners.coupang.com/widgets.html?id=1059927…` iframe 680×140 생성, 화면 폭에 맞춰 축소 후 표시 |
 | 14 | 배너 가로 오버플로 | 배너 포함 문서 폭 | PASS — iframe 356×73(390px 화면), `scrollWidth 390 = clientWidth 390` |
 | 15 | 배너 미로드 시 숨김 | `onLoaded(hasAd)` 조건 처리 | PASS — 배너가 그려지기 전에는 `#affiliateSection`이 `hidden` |
