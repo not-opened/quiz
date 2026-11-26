@@ -87,6 +87,48 @@ header p {
   margin-bottom: 6px;
 }
 
+/* 상단 슬림 유튜브 배너 */
+.yt-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 6px 12px;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.13), rgba(30, 41, 59, 0.85));
+  color: var(--text-main);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: center;
+  text-decoration: none;
+}
+
+.yt-banner:active {
+  border-color: rgba(239, 68, 68, 0.75);
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.22), rgba(30, 41, 59, 0.95));
+}
+
+.yt-banner .yt-play {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.58rem;
+  padding-left: 1px;
+}
+
+.yt-banner .yt-arrow {
+  color: #fca5a5;
+}
+
 /* Card */
 .card {
   background-color: var(--card-bg);
