@@ -1,8 +1,6 @@
 /**
- * notopened Quiz Portal - 30 Verified Master Questions
- * Curated & Fact-Checked by notopened content team
- *
- * slug: 주제별 딥링크(?cat=...) 키. 문항마다 하나씩 지정.
+ * 1일 1상식 두뇌 퀴즈 문항.
+ * slug: 주제별 주소(?cat=...)에 쓰는 키.
  */
 export const QUIZ_CATEGORIES = Object.freeze([
   { slug: 'science', label: '과학·물리' },
@@ -17,17 +15,17 @@ export const quizData = [
   {
     id: "quiz-001",
     slug: "science",
-    category: "항공 / 과학 상식 (OX)",
-    question: "비행기 객실 창문 아래쪽에 뚫려 있는 아주 작은 구멍은 창문이 깨졌을 때 바로 추락하는 것을 방지하기 위한 기압 조절용이다?",
+    category: "항공 / 과학 상식",
+    question: "비행기 객실 창문 아래쪽의 아주 작은 구멍은, 창문이 깨지면 비행기가 바로 추락하지 않도록 막으려고 뚫어 둔 것이다?",
     options: ["O (그렇다)", "X (아니다)"],
-    answer: 0,
-    explanation: "정답은 O입니다. '블리드 홀(Bleed Hole)'이라고 불리며 객실과 외부의 엄청난 기압 차이를 조절하고 창문에 김이 서리는 것을 방지합니다.",
-    source: "Federal Aviation Administration (FAA) Aircraft Cabin Safety Standards"
+    answer: 1,
+    explanation: "정답은 X입니다. 이 구멍(블리드 홀)은 중간 창에 있으며, 객실과 창 사이 공간의 기압을 맞춰 바깥 창이 압력 차이를 맡게 합니다. 바깥 창이 깨져도 중간 창이 압력을 버티고, 구멍은 김서림을 빼 주는 역할도 합니다. 추락을 막는 비상 구멍은 아닙니다.",
+    source: "항공기 객실 창 구조(중간 창 블리드 홀)"
   },
   {
     id: "quiz-002",
     slug: "science",
-    category: "물리 / 생활 과학 (2D 박스)",
+    category: "물리 / 생활 과학",
     question: "동일한 부피(1L)를 기준으로 비교했을 때, 얼음과 물 중 질량이 더 무거운 것은 무엇일까요?",
     options: ["얼음", "물", "둘 다 똑같다", "온도에 따라 항상 바뀐다"],
     answer: 1,
@@ -67,21 +65,21 @@ export const quizData = [
   {
     id: "quiz-006",
     slug: "health",
-    category: "인체 / 건강 상식 (OX)",
+    category: "인체 / 건강 상식",
     question: "커피나 탄산음료를 마신 직후 1분 안에 바로 양치질을 하면 치아 건강에 더 좋다?",
     options: ["O (즉시 닦는 게 좋다)", "X (치아 표면이 마모될 수 있다)"],
     answer: 1,
-    explanation: "정답은 X입니다! 산성 음료를 마신 직후에는 치아 표면(법랑질)이 일시적으로 약해지므로, 물로 먼저 입을 헹구고 약 30분 뒤에 양치하는 것이 안전합니다.",
+    explanation: "정답은 X입니다. 산성 음료를 마신 직후 법랑질이 잠깐 약해지므로, 바로 닦으면 표면이 더 닳을 수 있습니다. 물로 입을 헹군 뒤 30분에서 1시간 정도 지나 양치하는 편이 안전합니다.",
     source: "American Dental Association (ADA) Tooth Erosion Guidelines"
   },
   {
     id: "quiz-007",
     slug: "nature",
-    category: "동물 / 생물 상식 (OX)",
+    category: "동물 / 생물 상식",
     question: "금붕어의 기억력은 정말로 '단 3초'뿐이어서 돌아서면 모든 것을 잊어버릴까요?",
     options: ["O (3초면 잊어버린다)", "X (수개월 이상 기억한다)"],
     answer: 1,
-    explanation: "정답은 X입니다! 실험 결과 금붕어는 먹이 시간, 미로 경로, 특정 소리 신호를 최소 3~5개월 이상 정확하게 기억하고 학습할 수 있습니다.",
+    explanation: "정답은 X입니다. 3초 기억력은 속설입니다. 실험에서 금붕어는 먹이 시간, 길, 특정 소리를 몇 달 동안 기억하고 학습했습니다.",
     source: "Plymouth University Fish Cognition Research"
   },
   {
@@ -97,7 +95,7 @@ export const quizData = [
   {
     id: "quiz-009",
     slug: "health",
-    category: "뇌과학 상식 (OX)",
+    category: "뇌과학 상식",
     question: "인간은 평생 자기 뇌 기능의 단 10%만 사용하며, 나머지 90%는 잠들어 있다는 속설은 과학적 사실일까요?",
     options: ["O (10%만 사용한다)", "X (뇌 전체 영역을 골고루 사용한다)"],
     answer: 1,
@@ -117,7 +115,7 @@ export const quizData = [
   {
     id: "quiz-011",
     slug: "science",
-    category: "물리 / 낙하 실험 (2D 박스)",
+    category: "물리 / 낙하 실험",
     question: "공기 저항이 전혀 없는 진공 상태에서 10kg 쇠구슬과 1g 깃털을 같은 높이에서 동시에 떨어뜨리면 어떻게 될까요?",
     options: ["쇠구슬이 먼저 떨어진다", "깃털이 먼저 떨어진다", "정확히 동시에 바닥에 닿는다", "공중에 떠 있는다"],
     answer: 2,
@@ -127,7 +125,7 @@ export const quizData = [
   {
     id: "quiz-012",
     slug: "life",
-    category: "생활 안전 / 과학 (OX)",
+    category: "생활 안전 / 과학",
     question: "전자레인지에 알루미늄 포일이나 금속 숟가락을 넣고 돌리면 불꽃(스파크)이 튀며 화재 위험이 발생할 수 있다?",
     options: ["O (절대 넣으면 안 된다)", "X (아무 문제 없다)"],
     answer: 0,
@@ -158,7 +156,7 @@ export const quizData = [
     id: "quiz-015",
     slug: "health",
     category: "인체 생리학 상식",
-    question: "우리 몸을 구성하는 장기 중 부피 대비 에너지를 가장 많이 소비하여 기초대사량의 약 20%를 혼자 쓰는 기관은 어디일까요?",
+    question: "무게는 체중의 약 2%뿐이지만, 휴식 중 몸이 쓰는 에너지(기초대사)의 약 20%를 사용하는 기관은 어디일까요?",
     options: ["위장", "폐", "뇌(Brain)", "피부"],
     answer: 2,
     explanation: "정답은 '뇌'입니다. 뇌의 무게는 전체 체중의 약 2%에 불과하지만, 신경 세포 신호 전달을 위해 우리 몸 산소와 칼로리의 약 20%를 소모합니다.",
@@ -218,20 +216,20 @@ export const quizData = [
     id: "quiz-021",
     slug: "life",
     category: "생활 경제 / 철도 상식",
-    question: "코레일톡 앱으로 예매한 평일 일반 KTX 승차권을 열차 출발 '하루 전(1일 전)'에 취소하면 취소 위약금은 얼마일까요?",
+    question: "코레일톡으로 예매한 KTX 일반승차권을, 공휴일이 아닌 월요일~목요일 열차 출발 하루 전에 취소하면 위약금은 얼마일까요?",
     options: ["0원 (무료)", "400원", "운임의 5%", "운임의 10%"],
     answer: 0,
-    explanation: "정답은 '0원(무료)'입니다. 평일(월~목) 승차권은 출발 1일 전까지 모바일 앱에서 취소 시 위약금이 부과되지 않습니다(단, 금~일 및 공휴일은 기준 상이).",
+    explanation: "정답은 0원입니다. 공휴일이 아닌 월~목요일 일반승차권은 출발 3시간 전까지 취소하면 위약금이 없습니다. 그래서 하루 전 취소도 0원입니다. 금요일~일요일과 공휴일은 출발 하루 전에 취소하면 운임의 5%입니다.",
     source: "한국철도공사(KORAIL) 여객운송약관 반환수수료 규정"
   },
   {
     id: "quiz-022",
     slug: "life",
     category: "생활 법률 / 주거 상식",
-    question: "전월세 계약 시 이사 당일 주민센터에서 '전입신고'와 '확정일자'를 받으면 주택임대차보호법상 대항력이 언제부터 발생할까요?",
+    question: "전월세 집에 이사하고 주민센터에서 전입신고를 마치면, 주택임대차보호법상 대항력은 언제부터 생길까요?",
     options: ["신청 즉시(당일 0시)", "다음 날 오전 0시", "3일 뒤 자정", "일주일 뒤"],
     answer: 1,
-    explanation: "정답은 '다음 날 오전 0시'입니다. 주택의 인도와 주민등록(전입신고)을 마친 그다음 날 오전 0시부터 제3자에 대한 대항력이 생깁니다.",
+    explanation: "정답은 '다음 날 오전 0시'입니다. 집을 인도받고 전입신고를 마치면 그다음 날 0시부터 제3자에게 대항할 수 있습니다. 확정일자는 대항력과 별개로, 보증금을 우선 돌려받기 위한 요건입니다.",
     source: "법제처 찾기쉬운 생활법령정보: 주택임대차보호법 제3조"
   },
   {
@@ -267,17 +265,17 @@ export const quizData = [
   {
     id: "quiz-026",
     slug: "science",
-    category: "물리 / 부력 상식 (2D 박스)",
+    category: "물리 / 부력 상식",
     question: "물이 가득 찬 컵에 떠 있는 얼음이 완전히 다 녹으면 컵의 물 높이는 어떻게 변할까요?",
     options: ["컵 밖으로 넘친다", "처음 높이와 거의 똑같다", "절반으로 줄어든다", "계속 오르락내리락한다"],
     answer: 1,
-    explanation: "정답은 '처음 높이와 똑같다'입니다. 아르키메데스의 원리에 의해 떠 있는 얼음이 밀어낸 물의 부피는 얼음이 녹아 물이 되었을 때의 부피와 정확히 같습니다.",
+    explanation: "정답은 '처음 높이와 거의 똑같다'입니다. 물에 떠 있는 얼음이 밀어낸 물의 무게는 얼음 전체의 무게와 같습니다. 순수한 얼음이 녹으면 그 부피만큼이 되어 수위가 거의 변하지 않습니다.",
     source: "Encyclopedia Britannica: Archimedes' Principle & Buoyancy"
   },
   {
     id: "quiz-027",
     slug: "science",
-    category: "우주 / 물리 상식 (OX)",
+    category: "우주 / 물리 상식",
     question: "우주 공간에서는 거대한 폭발이 일어나도 우리 귀에 아무런 소리가 들리지 않는다?",
     options: ["O (진공 상태라 소리가 전달되지 않는다)", "X (지구보다 훨씬 크게 들린다)"],
     answer: 0,
@@ -288,16 +286,16 @@ export const quizData = [
     id: "quiz-028",
     slug: "nature",
     category: "동물 감각 상식",
-    question: "토끼가 고개를 돌리지 않고도 등 뒤에서 다가오는 천적을 감지할 수 있는 이유는 눈의 시야각이 거의 몇 도에 달하기 때문일까요?",
+    question: "토끼가 고개를 크게 돌리지 않고도 옆과 뒤에서 다가오는 움직임을 잘 알아채는 이유는, 눈의 시야가 거의 몇 도에 가깝기 때문일까요?",
     options: ["약 90도", "약 180도", "약 360도(전방위)", "약 45도"],
     answer: 2,
-    explanation: "정답은 '약 360도'입니다. 초식동물인 토끼는 눈이 머리 양옆 높은 곳에 위치해 있어 코 바로 앞의 좁은 사각지대를 제외한 거의 모든 방향을 동시에 볼 수 있습니다.",
+    explanation: "정답은 '약 360도'입니다. 토끼는 눈이 머리 양옆에 있어 시야가 거의 한 바퀴에 가깝습니다. 코 바로 앞과 바로 뒤의 좁은 사각을 빼면 고개를 돌리지 않고도 주변의 움직임을 볼 수 있습니다.",
     source: "Merck Veterinary Manual: Rabbit Vision and Anatomy"
   },
   {
     id: "quiz-029",
     slug: "health",
-    category: "생활 건강검진 상식 (OX)",
+    category: "생활 건강검진 상식",
     question: "건강검진(위내시경·혈액검사) 전날 밤 금식 시간에는 '아메리카노(블랙커피)'나 '녹차' 정도는 마셔도 괜찮을까요?",
     options: ["O (설탕이 없으니 괜찮다)", "X (위 점막 착색 및 수치 변화로 절대 금물)"],
     answer: 1,

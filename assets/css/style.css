@@ -20,6 +20,10 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+html {
+  overflow-x: hidden;
+}
+
 body {
   background-color: var(--bg-color);
   color: var(--text-main);
@@ -27,11 +31,12 @@ body {
   flex-direction: column;
   align-items: center;
   min-height: 100vh;
+  width: 100%;
   padding: 16px;
   touch-action: manipulation;
+  overflow-x: hidden;
 }
 
-/* Small screen optimization (e.g. Galaxy Fold cover screen 320px) */
 @media (max-width: 340px) {
   body {
     padding: 10px 8px;
@@ -82,30 +87,6 @@ header p {
   margin-bottom: 6px;
 }
 
-/* Ad Banner Slot (Policy Mockup - Minimum 20px margin from clickable buttons) */
-/* Ad Banner Slot (Clean UI Configuration - Hidden until official Google AdSense domain approval) */
-.ad-slot {
-  display: none !important;
-  background-color: #0b1120;
-  border: 1px dashed #475569;
-  border-radius: 8px;
-  min-height: 54px;
-  height: auto;
-  padding: 8px 12px;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: #64748b;
-  font-size: 0.75rem;
-  margin: 8px 0;
-  text-align: center;
-}
-
-.ad-slot span {
-  font-weight: 600;
-  color: #94a3b8;
-}
-
 /* Card */
 .card {
   background-color: var(--card-bg);
@@ -134,10 +115,16 @@ header p {
 .question-meta {
   display: flex;
   justify-content: space-between;
+  gap: 8px;
   font-size: 0.8rem;
   color: var(--text-muted);
   margin-bottom: 12px;
   font-weight: 600;
+}
+
+.question-meta span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .question-text {
@@ -146,6 +133,7 @@ header p {
   line-height: 1.5;
   margin-bottom: 24px;
   min-height: 56px;
+  overflow-wrap: anywhere;
 }
 
 /* Options */
@@ -169,8 +157,9 @@ header p {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 52px; /* Touch target minimum height */
+  min-height: 52px;
   user-select: none;
+  overflow-wrap: anywhere;
 }
 
 /* Hover and Active / Touch Feedback */
@@ -190,7 +179,6 @@ header p {
 .option-btn:focus-visible,
 .next-btn:focus-visible,
 .share-btn:focus-visible,
-.game-link-btn:focus-visible,
 .footer-link:focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
@@ -218,6 +206,7 @@ header p {
   font-size: 0.85rem;
   line-height: 1.5;
   display: none;
+  overflow-wrap: anywhere;
 }
 
 .explanation-box.show {
@@ -240,6 +229,10 @@ header p {
   display: none;
   box-shadow: 0 4px 14px rgba(56, 189, 248, 0.3);
   min-height: 52px;
+  line-height: 1.35;
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: anywhere;
   transition: all 0.15s ease;
 }
 
@@ -455,7 +448,13 @@ header p {
   color: var(--accent);
   text-decoration: none;
   font-weight: 600;
-  white-space: nowrap;
+}
+
+@media (max-width: 420px) {
+  .filter-link {
+    margin-left: 0;
+    flex-basis: 100%;
+  }
 }
 
 .filter-link:hover {
@@ -527,19 +526,6 @@ header p {
   gap: 6px;
 }
 
-.game-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background-color: #0f172a;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px;
-  margin-bottom: 8px;
-  gap: 8px;
-}
-
-/* Web 2 · Web 3 shortcut cards */
 .web-card {
   display: flex;
   align-items: center;
@@ -569,6 +555,10 @@ header p {
   transform: scale(0.99);
 }
 
+.web-card-body {
+  min-width: 0;
+}
+
 .web-card-body h4 {
   font-size: 0.88rem;
   color: #f1f5f9;
@@ -588,49 +578,6 @@ header p {
   white-space: nowrap;
 }
 
-.game-notice {
-  font-size: 0.71rem;
-  color: var(--text-muted);
-  margin-top: 8px;
-  line-height: 1.4;
-}
-
-.game-info h4 {
-  font-size: 0.88rem;
-  color: #f1f5f9;
-}
-
-.game-info p {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  margin-top: 2px;
-}
-
-.game-link-btn {
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 8px 14px;
-  background-color: rgba(56, 189, 248, 0.15);
-  color: var(--accent);
-  border: 1px solid var(--accent);
-  border-radius: 6px;
-  cursor: pointer;
-  min-height: 38px;
-  white-space: nowrap;
-  transition: all 0.15s ease;
-}
-
-.game-link-btn:hover {
-  background-color: rgba(56, 189, 248, 0.25);
-}
-
-.game-link-btn:active,
-.game-link-btn.touch-active {
-  transform: scale(0.96);
-  background-color: var(--accent);
-  color: #0f172a;
-}
-
 /* Portal Footer */
 .portal-footer {
   text-align: center;
@@ -645,8 +592,9 @@ header p {
 
 .footer-links {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  gap: 16px;
+  gap: 8px 16px;
 }
 
 .footer-link {
@@ -678,6 +626,7 @@ header p {
   z-index: 999;
   max-width: 90%;
   text-align: center;
+  overflow-wrap: anywhere;
 }
 
 .toast.show {
