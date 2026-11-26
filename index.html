@@ -13,11 +13,19 @@
   <meta property="og:description" content="30초면 끝나는 5문항 상식 퀴즈! 내 상식 지수와 두뇌 등급을 확인해보세요.">
   <meta property="og:site_name" content="notopened">
   <meta property="og:url" content="https://not-opened.github.io/quiz/">
+  <meta property="og:locale" content="ko_KR">
+  <meta property="og:image" content="https://not-opened.github.io/quiz/assets/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="notopened 1일 1상식 두뇌 퀴즈. 설치 없이 푸는 5문항 상식 퀴즈">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="notopened 1일 1상식 두뇌 퀴즈">
   <meta name="twitter:description" content="과학, 역사, 지리 등 일상 속 흥미진진한 상식 5문항 퀴즈">
+  <meta name="twitter:image" content="https://not-opened.github.io/quiz/assets/og-image.png">
+  <meta name="twitter:image:alt" content="notopened 1일 1상식 두뇌 퀴즈. 설치 없이 푸는 5문항 상식 퀴즈">
 
   <title>notopened 1일 1상식 두뇌 퀴즈</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27><text y=%27.9em%27 font-size=%2790%27>🧠</text></svg>">
@@ -28,24 +36,50 @@
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "Quiz",
-    "name": "notopened 1일 1상식 두뇌 퀴즈",
-    "description": "과학, 역사, 지리 등 일상 속 흥미진진한 상식 5문항 퀴즈",
-    "educationalLevel": "Beginner",
-    "about": {
-      "@type": "Thing",
-      "name": "General Knowledge & Science"
-    },
-    "hasPart": [
+    "@graph": [
+      {
+        "@type": "WebApplication",
+        "name": "notopened 1일 1상식 두뇌 퀴즈",
+        "url": "https://not-opened.github.io/quiz/",
+        "description": "설치·가입 없이 푸는 5문항 상식 퀴즈. 연속 도전 기록과 주제별 바로 풀기를 지원합니다.",
+        "inLanguage": "ko",
+        "applicationCategory": "EducationalApplication",
+        "operatingSystem": "Web",
+        "isAccessibleForFree": true,
+        "image": "https://not-opened.github.io/quiz/assets/og-image.png",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "KRW"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "notopened",
+          "sameAs": "https://www.youtube.com/@notopened"
+        }
+      },
+      {
+        "@type": "Quiz",
+        "name": "notopened 1일 1상식 두뇌 퀴즈",
+        "url": "https://not-opened.github.io/quiz/",
+        "image": "https://not-opened.github.io/quiz/assets/og-image.png",
+        "description": "과학, 역사, 지리 등 일상 속 흥미진진한 상식 5문항 퀴즈",
+        "inLanguage": "ko",
+        "educationalLevel": "Beginner",
+        "about": {
+          "@type": "Thing",
+          "name": "일반 상식"
+        },
+        "hasPart": [
       {
         "@type": "Question",
-        "name": "비행기 창문 블리드 홀 기압 조절 원리",
-        "text": "비행기 객실 창문 아래쪽에 뚫려 있는 아주 작은 구멍은 창문이 깨졌을 때 바로 추락하는 것을 방지하기 위한 기압 조절용이다?",
+        "name": "비행기 창문 작은 구멍의 역할",
+        "text": "비행기 객실 창문 아래쪽의 아주 작은 구멍은, 창문이 깨지면 비행기가 바로 추락하지 않도록 막으려고 뚫어 둔 것이다?",
         "suggestedAnswer": [
           { "@type": "Answer", "text": "O (그렇다)", "position": 0 },
           { "@type": "Answer", "text": "X (아니다)", "position": 1 }
         ],
-        "acceptedAnswer": { "@type": "Answer", "text": "O (그렇다)", "position": 0 }
+        "acceptedAnswer": { "@type": "Answer", "text": "X (아니다)", "position": 1 }
       },
       {
         "@type": "Question",
@@ -93,6 +127,8 @@
         ],
         "acceptedAnswer": { "@type": "Answer", "text": "남극 사막", "position": 1 }
       }
+        ]
+      }
     ]
   }
   </script>
@@ -116,9 +152,6 @@
     </nav>
 
     <div class="filter-notice" id="filterNotice" hidden></div>
-
-    <!-- 광고 슬롯: 애드센스 승인 전까지 비활성(빈 상태로 숨김) -->
-    <div class="ad-slot" aria-hidden="true"></div>
 
     <!-- Quiz Interactive Card -->
     <section class="card" id="quizCard" aria-live="polite">
@@ -165,37 +198,36 @@
       <button class="next-btn" id="restartBtn" style="display:block; margin-top:8px;" type="button">🔄 이번 세트 다시 도전하기</button>
 
       <!-- Cross Promotion Section -->
-      <nav class="cross-promo" aria-label="notopened 다른 웹 콘텐츠 바로가기">
-        <h3>🧠 notopened 다른 웹 콘텐츠</h3>
+      <nav class="cross-promo" aria-label="notopened의 다른 콘텐츠">
+        <h3>notopened의 다른 콘텐츠</h3>
 
-        <a class="web-card" href="https://not-opened.github.io/go-chess/" rel="noopener">
+        <a class="web-card" href="https://not-opened.github.io/go-chess/" rel="noopener noreferrer">
           <div class="web-card-body">
-            <h4>웹 2호 · 바둑·체스 한 수 미니</h4>
-            <p>설치 없이 30초, 1수 사활·체크메이트 퍼즐</p>
+            <h4>바둑·체스 한 수</h4>
+            <p>설치 없이 푸는 1수 사활·체크메이트 퍼즐</p>
           </div>
           <span class="web-card-go">바로가기 →</span>
         </a>
 
-        <a class="web-card" href="https://not-opened.github.io/fortune/" rel="noopener">
+        <a class="web-card" href="https://not-opened.github.io/fortune/" rel="noopener noreferrer">
           <div class="web-card-body">
-            <h4>웹 3호 · 사주·꿈풀이·MBTI 궁합</h4>
-            <p>가입 없이 30초, 오늘의 운세와 궁합 확인</p>
+            <h4>사주·꿈풀이·MBTI 궁합</h4>
+            <p>가입 없이 보는 오늘의 운세와 궁합</p>
           </div>
           <span class="web-card-go">바로가기 →</span>
         </a>
-
-        <p class="game-notice">📱 모바일 게임(GAME #001~003)은 Google Play 출시를 준비 중입니다.</p>
       </nav>
     </section>
 
-    <!-- 광고 슬롯: 애드센스 승인 전까지 비활성(빈 상태로 숨김) -->
-    <div class="ad-slot" aria-hidden="true" style="margin-top: 8px;"></div>
-
-    <!-- Footer with Policy Links -->
     <footer class="portal-footer">
       <div class="footer-links">
         <a href="./privacy.html" class="footer-link">개인정보처리방침</a>
+        <a href="https://www.youtube.com/@notopened" class="footer-link" target="_blank" rel="noopener noreferrer">YouTube</a>
       </div>
+      <nav class="footer-links" aria-label="notopened의 다른 콘텐츠">
+        <a href="https://not-opened.github.io/fortune/" class="footer-link" rel="noopener noreferrer">사주·꿈풀이</a>
+        <a href="https://not-opened.github.io/go-chess/" class="footer-link" rel="noopener noreferrer">바둑·체스 한 수</a>
+      </nav>
       <p>&copy; 2026 notopened AI ENTERPRISE. All rights reserved.</p>
     </footer>
   </main>

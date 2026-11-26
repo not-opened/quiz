@@ -124,6 +124,13 @@ function shuffle(list) {
 function startRound() {
   const pool = currentPool();
   roundCycleReset = false;
+  if (pool.length === 0) {
+    round = [];
+    currentIdx = 0;
+    score = 0;
+    answered = false;
+    return;
+  }
   let unsolved = unsolvedInPool();
 
   if (unsolved.length === 0) {
@@ -227,10 +234,33 @@ function renderStats() {
   bar.hidden = false;
 }
 
+function renderEmptyRound() {
+  const categoryElem = document.getElementById('categoryText');
+  const counterElem = document.getElementById('counterText');
+  const questionElem = document.getElementById('questionText');
+  const grid = document.getElementById('optionsGrid');
+  const progressFill = document.getElementById('progressFill');
+  const progressBar = document.getElementById('progressBar');
+  const expBox = document.getElementById('explanationBox');
+  const nextBtn = document.getElementById('nextBtn');
+
+  if (categoryElem) categoryElem.textContent = '안내';
+  if (counterElem) counterElem.textContent = '0 / 0';
+  if (questionElem) questionElem.textContent = '지금 풀 수 있는 문항이 없습니다. 위에서 다른 주제를 골라 주세요.';
+  if (grid) grid.innerHTML = '';
+  if (progressFill) progressFill.style.width = '0%';
+  if (progressBar) progressBar.setAttribute('aria-valuenow', '0');
+  if (expBox) expBox.className = 'explanation-box';
+  if (nextBtn) nextBtn.className = 'next-btn';
+}
+
 function renderQuestion() {
   answered = false;
   const q = round[currentIdx];
-  if (!q) return;
+  if (!q) {
+    renderEmptyRound();
+    return;
+  }
 
   const categoryElem = document.getElementById('categoryText');
   const counterElem = document.getElementById('counterText');
@@ -252,7 +282,7 @@ function renderQuestion() {
   const grid = document.getElementById('optionsGrid');
   if (grid) {
     grid.innerHTML = '';
-    q.options.forEach((opt, idx) => {
+    (q.options || []).forEach((opt, idx) => {
       const btn = document.createElement('button');
       btn.className = 'option-btn';
       btn.setAttribute('type', 'button');
@@ -328,6 +358,7 @@ export function nextQuestion() {
 }
 
 function showResults() {
+  if (!round.length) return;
   const quizCard = document.getElementById('quizCard');
   const resultCard = document.getElementById('resultCard');
   if (quizCard) quizCard.style.display = 'none';
