@@ -475,41 +475,207 @@ export function nextRoundSet() {
 
 /* -------------------------------------------------------------------- 공유 */
 
+const RESULT_IMAGE_FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans KR", sans-serif';
+
 function shareUrl() {
   return activeCategory ? `${SHARE_BASE_URL}?cat=${activeCategory}` : SHARE_BASE_URL;
 }
 
-export async function shareResult() {
+function resultComment() {
+  const desc = document.getElementById('rankDesc');
+  const title = document.getElementById('rankTitle');
+  const text = (desc && desc.textContent.trim()) || (title && title.textContent.trim());
+  return text || '오늘의 상식 한 판을 마쳤습니다.';
+}
+
+function sharePayload() {
   const rankTitleElem = document.getElementById('rankTitle');
   const rank = rankTitleElem ? rankTitleElem.textContent : '상식 퀴즈 도전자';
   const url = shareUrl();
   const streakLine = progress.streakDays > 1 ? `\n🔥 연속 ${progress.streakDays}일째 도전 중!` : '';
-  const nativeShareText = `[notopened 상식 퀴즈] ${round.length}문제 중 ${score}문제를 맞췄습니다!\n나의 등급: ${rank}${streakLine}\n지금 바로 도전해보세요! #notopened #상식퀴즈`;
-  const clipboardShareText = `[notopened 상식 퀴즈] ${round.length}문제 중 ${score}문제를 맞췄습니다!\n나의 등급: ${rank}${streakLine}\n도전하기 👉 ${url}\n#notopened #상식퀴즈`;
+  return {
+    title: 'notopened 1일 1상식 두뇌 퀴즈',
+    url,
+    comment: resultComment(),
+    nativeShareText: `[notopened 상식 퀴즈] ${round.length}문제 중 ${score}문제를 맞췄습니다!\n나의 등급: ${rank}${streakLine}\n지금 바로 도전해보세요! #notopened #상식퀴즈`,
+    clipboardShareText: `[notopened 상식 퀴즈] ${round.length}문제 중 ${score}문제를 맞췄습니다!\n나의 등급: ${rank}${streakLine}\n도전하기 👉 ${url}\n#notopened #상식퀴즈`
+  };
+}
 
+function roundRectPath(ctx, x, y, w, h, r) {
+  const radius = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.arcTo(x + w, y, x + w, y + h, radius);
+  ctx.arcTo(x + w, y + h, x, y + h, radius);
+  ctx.arcTo(x, y + h, x, y, radius);
+  ctx.arcTo(x, y, x + w, y, radius);
+  ctx.closePath();
+}
+
+function drawResultImage(ctx, scoreValue, total, comment) {
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(0, 0, 1080, 1350);
+
+  const glow = ctx.createRadialGradient(540, 80, 20, 540, 180, 640);
+  glow.addColorStop(0, 'rgba(250, 204, 21, 0.18)');
+  glow.addColorStop(1, 'rgba(250, 204, 21, 0)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, 1080, 1350);
+
+  roundRectPath(ctx, 72, 150, 936, 1050, 48);
+  ctx.fillStyle = '#1e293b';
+  ctx.fill();
+  ctx.strokeStyle = '#334155';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  const logo = 84;
+  ctx.font = `700 52px ${RESULT_IMAGE_FONT}`;
+  const name = 'notopened';
+  const nameWidth = ctx.measureText(name).width;
+  const brandX = (1080 - (logo + 18 + nameWidth)) / 2;
+  const brandY = 250;
+  roundRectPath(ctx, brandX, brandY, logo, logo, 20);
+  ctx.fillStyle = '#facc15';
+  ctx.fill();
+  const scale = logo / 32;
+  ctx.beginPath();
+  ctx.moveTo(brandX + 13 * scale, brandY + 9 * scale);
+  ctx.lineTo(brandX + 13 * scale, brandY + 23 * scale);
+  ctx.lineTo(brandX + 24 * scale, brandY + 16 * scale);
+  ctx.closePath();
+  ctx.fillStyle = '#0b1220';
+  ctx.fill();
+
+  ctx.fillStyle = '#ffffff';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(name, brandX + logo + 18, brandY + logo / 2);
+
+  ctx.textAlign = 'center';
+  ctx.font = `800 52px ${RESULT_IMAGE_FONT}`;
+  ctx.fillStyle = '#38bdf8';
+  ctx.fillText('1일 1상식 두뇌 퀴즈', 540, 470);
+
+  ctx.font = `700 28px ${RESULT_IMAGE_FONT}`;
+  ctx.fillStyle = '#94a3b8';
+  ctx.fillText('맞춘 문제', 540, 580);
+
+  ctx.font = `800 168px ${RESULT_IMAGE_FONT}`;
+  ctx.fillStyle = '#f8fafc';
+  ctx.fillText(`${scoreValue}/${total}`, 540, 720);
+
+  let commentSize = 36;
+  const maxCommentWidth = 820;
+  while (commentSize > 26) {
+    ctx.font = `600 ${commentSize}px ${RESULT_IMAGE_FONT}`;
+    if (ctx.measureText(comment).width <= maxCommentWidth) break;
+    commentSize -= 2;
+  }
+  ctx.fillStyle = '#e2e8f0';
+  ctx.fillText(comment, 540, 900);
+
+  ctx.strokeStyle = '#334155';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(180, 1140);
+  ctx.lineTo(900, 1140);
+  ctx.stroke();
+
+  ctx.font = `600 32px ${RESULT_IMAGE_FONT}`;
+  ctx.fillStyle = '#94a3b8';
+  ctx.fillText('notopened.com/quiz', 540, 1248);
+}
+
+export async function createResultImageFile(scoreValue, total, comment) {
+  if (typeof document === 'undefined') return null;
+  if (document.fonts && document.fonts.ready) {
+    try { await document.fonts.ready; } catch (e) { /* 폰트 대기 실패는 무시 */ }
+  }
+  const canvas = document.createElement('canvas');
+  canvas.width = 1080;
+  canvas.height = 1350;
+  const ctx = canvas.getContext('2d');
+  if (!ctx || typeof canvas.toBlob !== 'function') return null;
+  drawResultImage(ctx, scoreValue, total, comment || '오늘의 상식 한 판을 마쳤습니다.');
+  const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+  if (!blob || typeof File !== 'function') return null;
+  return new File([blob], 'notopened-quiz-result.png', { type: 'image/png' });
+}
+
+function canShareResultFile(file) {
+  if (!file || typeof navigator.canShare !== 'function' || typeof navigator.share !== 'function') return false;
+  try {
+    return navigator.canShare({ files: [file] });
+  } catch (e) {
+    return false;
+  }
+}
+
+async function shareResultText(payload) {
   if (navigator.share) {
     try {
       await navigator.share({
-        title: 'notopened 1일 1상식 두뇌 퀴즈',
-        text: nativeShareText,
-        url: url
+        title: payload.title,
+        text: payload.nativeShareText,
+        url: payload.url
       });
       showToast('공유되었습니다!');
       return;
     } catch (err) {
-      if (err.name === 'AbortError') return;
+      if (err && err.name === 'AbortError') return;
     }
   }
 
   if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(clipboardShareText).then(() => {
+    navigator.clipboard.writeText(payload.clipboardShareText).then(() => {
       showToast('결과가 클립보드에 복사되었습니다!');
     }).catch(() => {
-      fallbackCopyText(clipboardShareText);
+      fallbackCopyText(payload.clipboardShareText);
     });
   } else {
-    fallbackCopyText(clipboardShareText);
+    fallbackCopyText(payload.clipboardShareText);
   }
+}
+
+export async function shareResult() {
+  const payload = sharePayload();
+  const total = round.length || 5;
+  const file = await createResultImageFile(score, total, payload.comment);
+  if (canShareResultFile(file)) {
+    try {
+      await navigator.share({
+        files: [file],
+        title: payload.title,
+        text: payload.nativeShareText,
+        url: payload.url
+      });
+      showToast('공유되었습니다!');
+      return;
+    } catch (err) {
+      if (err && err.name === 'AbortError') return;
+    }
+  }
+  await shareResultText(payload);
+}
+
+export async function saveResultImage() {
+  const total = round.length || 5;
+  const file = await createResultImageFile(score, total, resultComment());
+  if (!file) {
+    showToast('결과 이미지를 만들지 못했습니다.');
+    return;
+  }
+  const objectUrl = URL.createObjectURL(file);
+  const link = document.createElement('a');
+  link.href = objectUrl;
+  link.download = file.name;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(objectUrl), 1500);
+  showToast('결과 이미지를 저장했습니다.');
 }
 
 function fallbackCopyText(text) {
@@ -558,6 +724,9 @@ function setupEventListeners() {
 
   const shareBtn = document.getElementById('shareBtn');
   if (shareBtn) shareBtn.addEventListener('click', shareResult);
+
+  const saveResultBtn = document.getElementById('saveResultBtn');
+  if (saveResultBtn) saveResultBtn.addEventListener('click', saveResultImage);
 }
 
 if (typeof window !== 'undefined') {
@@ -570,5 +739,7 @@ if (typeof window !== 'undefined') {
   window.restartQuiz = restartQuiz;
   window.nextRoundSet = nextRoundSet;
   window.shareResult = shareResult;
+  window.saveResultImage = saveResultImage;
+  window.createResultImageFile = createResultImageFile;
   window.showToast = showToast;
 }
