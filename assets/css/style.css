@@ -86,6 +86,11 @@ header p {
   text-decoration: none;
 }
 
+/* 컨테이너 gap 16px와 더해 go-chess와 같은 14px 간격 */
+.container > .brand {
+  margin-bottom: -2px;
+}
+
 .brand:hover,
 .brand:focus,
 .brand:active,
