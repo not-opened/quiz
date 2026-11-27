@@ -613,6 +613,19 @@ function canShareResultFile(file) {
   }
 }
 
+const LINK_COPIED_TOAST = '링크가 복사됐어요. 카톡에 붙여넣기 해주세요';
+
+function shareTextWithUrl(payload) {
+  return `${payload.nativeShareText}\n${payload.url}`;
+}
+
+async function copyShareTextAndUrl(payload) {
+  try {
+    if (!navigator.clipboard || typeof navigator.clipboard.writeText !== 'function') return;
+    await navigator.clipboard.writeText(shareTextWithUrl(payload));
+  } catch (e) { /* 클립보드 거부는 조용히 무시 */ }
+}
+
 async function shareResultText(payload) {
   if (navigator.share) {
     try {
@@ -639,11 +652,16 @@ async function shareResultText(payload) {
   }
 }
 
+export async function shareResultLink() {
+  await shareResultText(sharePayload());
+}
+
 export async function shareResult() {
   const payload = sharePayload();
   const total = round.length || 5;
   const file = await createResultImageFile(score, total, payload.comment);
   if (canShareResultFile(file)) {
+    await copyShareTextAndUrl(payload);
     try {
       await navigator.share({
         files: [file],
@@ -651,10 +669,13 @@ export async function shareResult() {
         text: payload.nativeShareText,
         url: payload.url
       });
-      showToast('공유되었습니다!');
+      showToast(LINK_COPIED_TOAST);
       return;
     } catch (err) {
-      if (err && err.name === 'AbortError') return;
+      if (err && err.name === 'AbortError') {
+        showToast(LINK_COPIED_TOAST);
+        return;
+      }
     }
   }
   await shareResultText(payload);
@@ -725,6 +746,9 @@ function setupEventListeners() {
   const shareBtn = document.getElementById('shareBtn');
   if (shareBtn) shareBtn.addEventListener('click', shareResult);
 
+  const shareLinkBtn = document.getElementById('shareLinkBtn');
+  if (shareLinkBtn) shareLinkBtn.addEventListener('click', shareResultLink);
+
   const saveResultBtn = document.getElementById('saveResultBtn');
   if (saveResultBtn) saveResultBtn.addEventListener('click', saveResultImage);
 }
@@ -739,6 +763,7 @@ if (typeof window !== 'undefined') {
   window.restartQuiz = restartQuiz;
   window.nextRoundSet = nextRoundSet;
   window.shareResult = shareResult;
+  window.shareResultLink = shareResultLink;
   window.saveResultImage = saveResultImage;
   window.createResultImageFile = createResultImageFile;
   window.showToast = showToast;
