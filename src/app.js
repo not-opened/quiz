@@ -1032,9 +1032,38 @@ export function showToast(msg) {
 
 /* ------------------------------------------------------------------ 이벤트 */
 
+/* 키보드: 1~4 선택지, Enter/스페이스 다음 (데스크톱 사용자) */
+function setupKeyboardShortcuts() {
+  document.addEventListener('keydown', (e) => {
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    const tag = (e.target && e.target.tagName) || '';
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    const quizCard = document.getElementById('quizCard');
+    if (!quizCard || quizCard.style.display === 'none') return;
+
+    if (!answered && /^[1-9]$/.test(e.key)) {
+      const btn = document.querySelectorAll('.option-btn')[Number(e.key) - 1];
+      if (btn) {
+        e.preventDefault();
+        btn.click();
+      }
+      return;
+    }
+    if (answered && (e.key === 'Enter' || e.key === ' ')) {
+      const btn = document.getElementById('nextBtn');
+      if (btn && btn.classList.contains('show')) {
+        e.preventDefault();
+        btn.click();
+      }
+    }
+  });
+}
+
 function setupEventListeners() {
   const nextBtn = document.getElementById('nextBtn');
   if (nextBtn) nextBtn.addEventListener('click', nextQuestion);
+
+  setupKeyboardShortcuts();
 
   const restartBtn = document.getElementById('restartBtn');
   if (restartBtn) restartBtn.addEventListener('click', restartQuiz);
