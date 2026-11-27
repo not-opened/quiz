@@ -3,16 +3,20 @@ import { initTouchInteractions } from './touchHandler.js';
 
 const SHARE_BASE_URL = 'https://notopened.com/quiz/';
 const STORAGE_KEY = 'notopened.quiz.progress.v1';
+const DAILY_KEY = 'notopened.quiz.daily.v1';
 const ROUND_SIZE = 5;
 const CYCLE_SIZE = quizData.length;
 
 const progress = loadProgress();
 const activeCategory = resolveCategory();
+const dailyMode = resolveDailyMode();
+const dailyDate = kstDateKey();
 let round = [];
 let roundCycleReset = false;
 let currentIdx = 0;
 let score = 0;
 let answered = false;
+let wrongAnswers = [];
 
 /* ---------------------------------------------------------------- 상태 저장 */
 
@@ -81,6 +85,116 @@ function touchStreak() {
   progress.lastPlayDate = today;
 }
 
+/* --------------------------------------------- 오늘의 챌린지 (날짜 시드 고정 출제) */
+
+function kstDateKey() {
+  const now = new Date();
+  const kst = new Date(now.getTime() + now.getTimezoneOffset() * 60000 + 9 * 3600000);
+  return localDateKey(kst);
+}
+
+function kstDateLabel(key) {
+  const parts = String(key).split('-').map(Number);
+  const weekday = ['일', '월', '화', '수', '목', '금', '토'][new Date(Date.UTC(parts[0], parts[1] - 1, parts[2])).getUTCDay()];
+  return `${parts[1]}월 ${parts[2]}일 (${weekday})`;
+}
+
+function resolveDailyMode() {
+  try {
+    const raw = (new URLSearchParams(window.location.search).get('daily') || '').trim().toLowerCase();
+    return raw === '1' || raw === 'true' || raw === 'today';
+  } catch (e) {
+    return false;
+  }
+}
+
+function hashString(str) {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  return h >>> 0;
+}
+
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a = (a + 0x6D2B79F5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/* 같은 KST 날짜에는 모든 방문자에게 같은 5문항이 나온다. */
+function dailyQuestionList(key) {
+  const rnd = mulberry32(hashString(`notopened.quiz.daily.${key}`));
+  const pool = quizData.slice();
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(rnd() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, Math.min(ROUND_SIZE, pool.length));
+}
+
+function loadDailyRecord() {
+  try {
+    const raw = localStorage.getItem(DAILY_KEY);
+    const parsed = raw ? JSON.parse(raw) : {};
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function todayDailyEntry() {
+  const entry = loadDailyRecord()[dailyDate];
+  return entry && typeof entry === 'object' ? entry : null;
+}
+
+function saveDailyResult() {
+  try {
+    const map = loadDailyRecord();
+    map[dailyDate] = { score, total: round.length, at: new Date().toISOString() };
+    const keys = Object.keys(map).sort();
+    while (keys.length > 120) delete map[keys.shift()];
+    localStorage.setItem(DAILY_KEY, JSON.stringify(map));
+  } catch (e) { /* 사생활 보호 모드에서는 기록만 건너뜀 */ }
+}
+
+function renderDailyCard() {
+  const card = document.getElementById('dailyCard');
+  if (!card) return;
+  if (dailyMode) { card.hidden = true; return; }
+  card.hidden = false;
+  const dateEl = document.getElementById('dailyDate');
+  const descEl = document.getElementById('dailyDesc');
+  const startEl = document.getElementById('dailyStart');
+  const rec = todayDailyEntry();
+  if (dateEl) dateEl.textContent = kstDateLabel(dailyDate);
+  const done = !!(rec && typeof rec.score === 'number');
+  card.classList.toggle('done', done);
+  if (descEl) {
+    descEl.textContent = done
+      ? `오늘 기록 ${rec.score} / ${rec.total}점. 다시 풀어 기록을 갱신할 수 있습니다.`
+      : '매일 자정에 바뀌는 5문항. 같은 날에는 누구에게나 같은 문제가 나옵니다.';
+  }
+  if (startEl) startEl.textContent = done ? '오늘의 5문항 다시 풀기 →' : '오늘의 5문항 시작 →';
+}
+
+function setupDailyMode() {
+  if (!dailyMode) return;
+  const nav = document.querySelector('.cat-nav');
+  if (nav) nav.style.display = 'none';
+  const notice = document.getElementById('filterNotice');
+  if (notice) notice.hidden = true;
+  const sub = document.querySelector('header[role="banner"] p');
+  if (sub) sub.textContent = `${kstDateLabel(dailyDate)} · 오늘의 5문항 챌린지 (매일 자정 갱신)`;
+  document.title = `${kstDateLabel(dailyDate)} 오늘의 챌린지 · notopened 1일 1상식 두뇌 퀴즈`;
+}
+
 /* ------------------------------------------------------------------ 주제 · 풀 */
 
 function resolveCategory() {
@@ -122,8 +236,16 @@ function shuffle(list) {
 }
 
 function startRound() {
-  const pool = currentPool();
   roundCycleReset = false;
+  wrongAnswers = [];
+  if (dailyMode) {
+    round = dailyQuestionList(dailyDate);
+    currentIdx = 0;
+    score = 0;
+    answered = false;
+    return;
+  }
+  const pool = currentPool();
   if (pool.length === 0) {
     round = [];
     currentIdx = 0;
@@ -165,10 +287,12 @@ export function initApp() {
   initTouchInteractions();
   renderCatChips();
   setCategoryMeta();
+  setupDailyMode();
   startRound();
   renderQuestion();
   renderStats();
   renderFilterNotice();
+  renderDailyCard();
   setupEventListeners();
 
   if (roundCycleReset) {
@@ -316,6 +440,18 @@ function selectOption(selectedIdx) {
   });
 
   if (isCorrect) score++;
+  if (!isCorrect) {
+    wrongAnswers.push({
+      id: q.id,
+      slug: q.slug,
+      category: q.category,
+      question: q.question,
+      chosen: (q.options || [])[selectedIdx] || '',
+      answer: (q.options || [])[q.answer] || '',
+      explanation: q.explanation,
+      source: q.source
+    });
+  }
 
   // 재방문 기록: 푼 문항 ID · 누적 풀이 · 연속 도전 일수
   if (!progress.solved.includes(q.id)) progress.solved.push(q.id);
@@ -397,9 +533,71 @@ function showResults() {
     progress.bestScore = score;
     progress.bestRound = full;
   }
+  const prevDaily = dailyMode ? todayDailyEntry() : null;
   saveProgress();
   renderStats();
   renderResultStats();
+  if (dailyMode) saveDailyResult();
+  renderDailyBox(prevDaily);
+  renderWrongNotes();
+}
+
+function renderDailyBox(prevEntry) {
+  const box = document.getElementById('dailyResult');
+  if (!box) return;
+  if (!dailyMode) {
+    box.hidden = true;
+    box.innerHTML = '';
+    return;
+  }
+  const prevScore = prevEntry && typeof prevEntry.score === 'number' ? prevEntry.score : null;
+  const bestToday = prevScore === null ? score : Math.max(prevScore, score);
+  const note = prevScore === null
+    ? '오늘 첫 기록을 남겼습니다!'
+    : (score > prevScore ? `오늘 기록 ${prevScore}점 → ${score}점 갱신!` : `오늘 최고 ${bestToday}점`);
+  box.hidden = false;
+  box.innerHTML = `<span class="daily-result-label">📅 ${kstDateLabel(dailyDate)} 오늘의 챌린지</span>`
+    + `<span class="daily-result-score">${score} / ${round.length}점</span>`
+    + `<span class="daily-result-note">${note}</span>`;
+}
+
+function escapeHtml(text) {
+  return String(text === undefined || text === null ? '' : text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function renderWrongNotes() {
+  const box = document.getElementById('wrongNotes');
+  if (!box) return;
+  box.hidden = false;
+  if (!wrongAnswers.length) {
+    box.innerHTML = '<div class="wrong-head"><strong>🗒️ 오답 노트</strong><span class="wrong-empty">이번 세트는 모두 정답! 틀린 문항이 없습니다 🎉</span></div>';
+    return;
+  }
+
+  const byCat = {};
+  wrongAnswers.forEach((w) => { byCat[w.slug] = (byCat[w.slug] || 0) + 1; });
+  const weakSlug = Object.keys(byCat).sort((a, b) => byCat[b] - byCat[a])[0];
+
+  const items = wrongAnswers.map((w, i) => {
+    return `<details class="wrong-item"><summary><span class="wrong-no">${i + 1}</span><span class="wrong-q">${escapeHtml(w.question)}</span><span class="wrong-toggle" aria-hidden="true">펼치기</span></summary>`
+      + `<div class="wrong-body">`
+      + `<p class="wrong-cat">${escapeHtml(w.category)}</p>`
+      + `<p class="wrong-answer">내 선택: <span class="wrong-mine">${escapeHtml(w.chosen)}</span> · 정답: <strong>${escapeHtml(w.answer)}</strong></p>`
+      + `<p class="wrong-exp">${escapeHtml(w.explanation)}</p>`
+      + `<p class="wrong-source">[출처: ${escapeHtml(w.source)}]</p>`
+      + '</div></details>';
+  }).join('');
+
+  const retry = weakSlug
+    ? `<a class="wrong-retry" href="?cat=${weakSlug}">🎯 약점 주제 ‘${escapeHtml(categoryLabel(weakSlug))}’ ${byCat[weakSlug]}문항 틀림 · 이 주제로 재도전 →</a>`
+    : '';
+
+  box.innerHTML = `<div class="wrong-head"><strong>🗒️ 오답 노트</strong><span class="wrong-sub">틀린 ${wrongAnswers.length}문항의 해설을 펼쳐 보세요</span></div>`
+    + items + retry;
 }
 
 function renderResultStats() {
@@ -412,16 +610,21 @@ function renderResultStats() {
     : 0;
 
   if (box) {
+    const cycleLabel = dailyMode ? '📅 오늘의 챌린지' : `🎯 ${activeCategory ? '이 주제' : '이번 순환'}`;
+    const cycleValue = dailyMode ? `${score} / ${round.length}점` : `${solved} / ${pool.length}문항`;
     box.innerHTML = `
       <div class="result-stat"><span class="k">🔥 연속 도전</span><span class="v">${progress.streakDays}일</span></div>
       <div class="result-stat"><span class="k">📚 누적 풀이</span><span class="v">${progress.totalAnswered}문제 · ${accuracy}%</span></div>
       <div class="result-stat"><span class="k">🏆 최고 점수</span><span class="v">${progress.bestScore} / ${progress.bestRound}</span></div>
-      <div class="result-stat"><span class="k">🎯 ${activeCategory ? '이 주제' : '이번 순환'}</span><span class="v">${solved} / ${pool.length}문항</span></div>
+      <div class="result-stat"><span class="k">${cycleLabel}</span><span class="v">${cycleValue}</span></div>
     `;
   }
 
   const nextSetBtn = document.getElementById('nextSetBtn');
+  const freeLink = document.getElementById('dailyFreeLink');
+  if (freeLink) freeLink.style.display = dailyMode ? 'block' : 'none';
   if (nextSetBtn) {
+    nextSetBtn.style.display = dailyMode ? 'none' : 'block';
     if (remaining === 0) {
       nextSetBtn.textContent = activeCategory
         ? `✨ ‘${categoryLabel(activeCategory)}’ 새 순환 시작하기`
@@ -433,7 +636,10 @@ function renderResultStats() {
 
   const banner = document.getElementById('completionBanner');
   if (banner) {
-    if (remaining === 0) {
+    if (dailyMode) {
+      banner.hidden = true;
+      banner.textContent = '';
+    } else if (remaining === 0) {
       banner.hidden = false;
       banner.textContent = activeCategory
         ? `🎉 ‘${categoryLabel(activeCategory)}’ 문항을 모두 풀었습니다. 다음 세트에서 새 순환이 시작됩니다.`
@@ -491,14 +697,19 @@ function resultComment() {
 function sharePayload() {
   const rankTitleElem = document.getElementById('rankTitle');
   const rank = rankTitleElem ? rankTitleElem.textContent : '상식 퀴즈 도전자';
-  const url = shareUrl();
+  const url = dailyMode ? `${SHARE_BASE_URL}?daily=1` : shareUrl();
   const streakLine = progress.streakDays > 1 ? `\n🔥 연속 ${progress.streakDays}일째 도전 중!` : '';
+  const head = dailyMode
+    ? `[notopened 상식 퀴즈] ${kstDateLabel(dailyDate)} 오늘의 챌린지 — ${round.length}문제 중 ${score}문제를 맞췄습니다!`
+    : `[notopened 상식 퀴즈] ${round.length}문제 중 ${score}문제를 맞췄습니다!`;
+  const tag = dailyMode ? '#notopened #상식퀴즈 #오늘의챌린지' : '#notopened #상식퀴즈';
   return {
-    title: 'notopened 1일 1상식 두뇌 퀴즈',
+    title: dailyMode ? `${kstDateLabel(dailyDate)} 오늘의 상식 챌린지` : 'notopened 1일 1상식 두뇌 퀴즈',
     url,
     comment: resultComment(),
-    nativeShareText: `[notopened 상식 퀴즈] ${round.length}문제 중 ${score}문제를 맞췄습니다!\n나의 등급: ${rank}${streakLine}\n지금 바로 도전해보세요! #notopened #상식퀴즈`,
-    clipboardShareText: `[notopened 상식 퀴즈] ${round.length}문제 중 ${score}문제를 맞췄습니다!\n나의 등급: ${rank}${streakLine}\n도전하기 👉 ${url}\n#notopened #상식퀴즈`
+    dateLabel: dailyMode ? `${kstDateLabel(dailyDate)} 오늘의 챌린지` : '',
+    nativeShareText: `${head}\n나의 등급: ${rank}${streakLine}\n지금 바로 도전해보세요! ${tag}`,
+    clipboardShareText: `${head}\n나의 등급: ${rank}${streakLine}\n도전하기 👉 ${url}\n${tag}`
   };
 }
 
@@ -513,7 +724,7 @@ function roundRectPath(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
-function drawResultImage(ctx, scoreValue, total, comment) {
+function drawResultImage(ctx, scoreValue, total, comment, dateLabel) {
   ctx.fillStyle = '#0f172a';
   ctx.fillRect(0, 0, 1080, 1350);
 
@@ -558,6 +769,12 @@ function drawResultImage(ctx, scoreValue, total, comment) {
   ctx.fillStyle = '#38bdf8';
   ctx.fillText('1일 1상식 두뇌 퀴즈', 540, 470);
 
+  if (dateLabel) {
+    ctx.font = `700 34px ${RESULT_IMAGE_FONT}`;
+    ctx.fillStyle = '#facc15';
+    ctx.fillText(dateLabel, 540, 380);
+  }
+
   ctx.font = `700 28px ${RESULT_IMAGE_FONT}`;
   ctx.fillStyle = '#94a3b8';
   ctx.fillText('맞춘 문제', 540, 580);
@@ -588,7 +805,7 @@ function drawResultImage(ctx, scoreValue, total, comment) {
   ctx.fillText('notopened.com/quiz', 540, 1248);
 }
 
-export async function createResultImageFile(scoreValue, total, comment) {
+export async function createResultImageFile(scoreValue, total, comment, dateLabel) {
   if (typeof document === 'undefined') return null;
   if (document.fonts && document.fonts.ready) {
     try { await document.fonts.ready; } catch (e) { /* 폰트 대기 실패는 무시 */ }
@@ -598,7 +815,7 @@ export async function createResultImageFile(scoreValue, total, comment) {
   canvas.height = 1350;
   const ctx = canvas.getContext('2d');
   if (!ctx || typeof canvas.toBlob !== 'function') return null;
-  drawResultImage(ctx, scoreValue, total, comment || '오늘의 상식 한 판을 마쳤습니다.');
+  drawResultImage(ctx, scoreValue, total, comment || '오늘의 상식 한 판을 마쳤습니다.', dateLabel || '');
   const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
   if (!blob || typeof File !== 'function') return null;
   return new File([blob], 'notopened-quiz-result.png', { type: 'image/png' });
@@ -659,7 +876,7 @@ export async function shareResultLink() {
 export async function shareResult() {
   const payload = sharePayload();
   const total = round.length || 5;
-  const file = await createResultImageFile(score, total, payload.comment);
+  const file = await createResultImageFile(score, total, payload.comment, payload.dateLabel);
   if (canShareResultFile(file)) {
     await copyShareTextAndUrl(payload);
     try {
@@ -683,7 +900,7 @@ export async function shareResult() {
 
 export async function saveResultImage() {
   const total = round.length || 5;
-  const file = await createResultImageFile(score, total, resultComment());
+  const file = await createResultImageFile(score, total, resultComment(), dailyMode ? `${kstDateLabel(dailyDate)} 오늘의 챌린지` : '');
   if (!file) {
     showToast('결과 이미지를 만들지 못했습니다.');
     return;

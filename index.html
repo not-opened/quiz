@@ -156,6 +156,16 @@
     <!-- 재방문 기록 요약: 연속 도전 일수 · 누적 풀이 · 최고 점수 · 순환 진행 -->
     <div class="stats-bar" id="statsBar" hidden aria-label="나의 도전 기록"></div>
 
+    <!-- 오늘의 5문항 챌린지 (KST 날짜 시드로 매일 고정 출제) -->
+    <section class="daily-card" id="dailyCard" aria-label="오늘의 5문항 챌린지">
+      <div class="daily-card-head">
+        <span class="daily-badge">📅 오늘의 챌린지</span>
+        <span class="daily-date" id="dailyDate"></span>
+      </div>
+      <p class="daily-desc" id="dailyDesc">매일 자정에 바뀌는 5문항. 같은 날에는 누구에게나 같은 문제가 나옵니다.</p>
+      <a class="daily-start" id="dailyStart" href="?daily=1">오늘의 5문항 시작 →</a>
+    </section>
+
     <!-- 주제별 딥링크(?cat=...) 바로가기 -->
     <p style="margin:0 0 1rem;text-align:center"><a href="./places/" style="display:inline-block;padding:.65rem .9rem;border:1px solid #fde68a;border-radius:12px;color:#fde68a;background:#182239;font-weight:750">📍 여기 어디게? 사진 퀴즈 23문제 →</a></p>
     <nav class="cat-nav" aria-label="주제별로 풀기">
@@ -203,7 +213,12 @@
 
       <div class="completion-banner" id="completionBanner" hidden></div>
 
+      <div class="daily-result" id="dailyResult" hidden></div>
+
       <div class="result-stats" id="resultStats" aria-label="누적 도전 기록"></div>
+
+      <!-- 오답 노트: 이번 세트에서 틀린 문항 해설 + 약점 주제 재도전 -->
+      <div class="wrong-notes" id="wrongNotes" hidden></div>
 
       <div class="share-row">
         <button class="share-btn share-btn-main" id="shareBtn" type="button">📋 결과 복사 / 공유하기</button>
@@ -211,6 +226,7 @@
       </div>
       <button class="share-btn" id="saveResultBtn" type="button">결과 이미지 저장</button>
       <button class="next-btn" id="nextSetBtn" style="display:block; margin-top:8px;" type="button">⚡ 다음 미풀이 5문항 도전</button>
+      <a class="next-btn daily-free-link" id="dailyFreeLink" style="display:none; margin-top:8px; text-align:center; text-decoration:none;" href="./">🎲 자유 모드로 다른 5문항 더 풀기</a>
       <button class="next-btn btn-secondary" id="restartBtn" style="display:block; margin-top:8px;" type="button">🔄 이번 세트 다시 도전하기</button>
 
       <!-- Cross Promotion Section -->
