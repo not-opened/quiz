@@ -10,3 +10,7 @@
 #visit-tip{margin:0 0 .35rem}
 #visit-source{font-size:.85rem}
 .visit-prompt{margin:.65rem 0 0;font-size:.94rem;color:var(--dim)}
+
+.place-friend-cta{margin-block:1rem}.place-friend-cta a{display:inline-flex;align-items:center;min-height:44px;font-weight:700}
+
+.place-quick-links{display:flex;flex-wrap:wrap;gap:.35rem .6rem;margin:.5rem 0 .75rem}.place-quick-links a{display:inline-flex;align-items:center;min-height:44px;padding:.35rem .7rem;border:1px solid var(--stroke);border-radius:12px;background:var(--card);font-size:.9rem;font-weight:700;text-decoration:none}.place-quick-links a:hover{border-color:var(--accent)}
