@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>친구에게 3문제 내기 | 여기 어디게? · notopened</title>
+<meta name="description" content="여기 어디게? 사진 퀴즈에서 3문제를 골라 친구에게 도전장을 보내세요. 같은 세 문제를 푼 뒤 두 사람의 답을 나란히 비교할 수 있어요.">
+<link rel="canonical" href="https://notopened.com/quiz/places/friend/">
+<meta property="og:title" content="여기 어디게? · 친구의 3문제 도전장">
+<meta property="og:description" content="같은 사진 3장을 보고, 누구의 답이 맞았는지 비교해 보세요.">
+<meta property="og:url" content="https://notopened.com/quiz/places/friend/">
+<link rel="stylesheet" href="friend.css">
+<script defer src="../items.js"></script><script defer src="../stamp-record.js"></script><script defer src="friend.js"></script>
+</head>
+<body>
+<header><a href="../">← 여기 어디게?</a><span class="brand">notopened</span></header>
+<main>
+<section id="review" hidden>
+<p class="eyebrow">여기 어디게? · 같이 풀기</p>
+<h1 id="page-title">도전장 만들기</h1>
+<p class="muted">기존 사진 문제 중 3개를 고른 뒤 먼저 풀어 보세요. 그 순서 그대로 친구에게 닿아요.</p>
+<div id="picks"></div>
+<div class="build-actions"><span id="picked" role="status" aria-live="polite">0 / 3 선택</span><button type="button" id="start" class="primary" disabled>이 3문제 먼저 풀기</button></div>
+<details><summary>선택 화면 사진 출처</summary><ul id="builder-credits" class="credits"></ul></details>
+</section>
+<section id="invite" class="panel" hidden>
+<p class="eyebrow">여기 어디게? · 같이 풀기</p><h1 id="invite-title" tabindex="-1">친구가 보낸 3문제 도전장</h1>
+<p>친구가 풀었던 문제와 순서가 같아요. 세 문제를 다 풀면 서로의 답을 나란히 비교할 수 있어요.</p>
+<button type="button" id="accept" class="primary">도전 시작</button>
+</section>
+<section id="play" class="panel" hidden>
+<div class="meta"><span id="play-role"></span><span id="count"></span></div>
+<progress id="progress" max="3" value="0" aria-label="퀴즈 진행"></progress>
+<h1 id="prompt" class="question" tabindex="-1"></h1>
+<figure><img id="photo" alt="정답을 가린 장소 사진"></figure>
+<div id="choices" aria-label="정답 보기"></div>
+<details><summary>이 사진 출처</summary><p id="play-credit" class="muted"></p></details>
+<p class="muted">정답과 친구의 답은 3문제를 모두 푼 뒤에 나와요.</p>
+<button type="button" id="next" class="primary" disabled>다음 문제</button>
+</section>
+<section id="result" class="panel" hidden>
+<p id="result-kicker" class="eyebrow"></p>
+<h1 id="result-title" tabindex="-1"></h1>
+<p id="result-summary" class="summary"></p>
+<ol id="compare"></ol>
+<div id="sharing">
+<h2 id="share-heading"></h2>
+<p id="share-help" class="muted"></p>
+<div class="share-actions"><button type="button" id="share" class="primary">공유하기</button><button type="button" id="copy">링크 복사</button></div>
+<p id="share-status" class="muted" role="status"></p>
+<label for="share-url">공유 링크</label><input id="share-url" readonly>
+</div>
+<a class="button secondary" href="./">새 도전장 만들기</a>
+</section>
+<section id="invalid" class="panel" hidden>
+<h1 id="invalid-title" tabindex="-1">이 링크를 열 수 없어요</h1>
+<p class="muted">링크가 잘렸거나 문제 구성이 바뀌었을 수 있어요. 친구에게 링크를 다시 받아 보세요.</p>
+<a class="button primary" href="./">새 도전장 만들기</a>
+</section>
+<noscript><p>친구 도전장을 만들거나 풀려면 브라우저에서 자바스크립트를 켜 주세요.</p></noscript>
+</main>
+<footer>링크에는 고른 문제와 선택한 답만 담겨요. 이름, 계정, 서버 저장이 없어요. 비교 결과는 친구가 링크를 직접 보내야 받아볼 수 있어요. <a href="/quiz/privacy.html">개인정보처리방침</a></footer>
+</body>
+</html>
