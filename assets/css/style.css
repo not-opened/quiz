@@ -1040,3 +1040,15 @@ header p {
   word-break: keep-all;
 }
 .daily-free-link { background: #334155; color: #f8fafc; }
+
+.daily-streak {
+  margin: 0 0 10px;
+  font-size: 0.78rem;
+  color: #fde68a;
+  font-weight: 700;
+  line-height: 1.5;
+  word-break: keep-all;
+}
+.daily-streak[hidden] { display: none; }
+.daily-streak strong { color: #f8fafc; }
+.daily-result-next { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }

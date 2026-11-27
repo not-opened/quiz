@@ -154,6 +154,31 @@ function todayDailyEntry() {
   return entry && typeof entry === 'object' ? entry : null;
 }
 
+function dateKeyFromUtc(d) {
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
+}
+
+function shiftDateKey(key, days) {
+  const parts = String(key).split('-').map(Number);
+  const d = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+  d.setUTCDate(d.getUTCDate() + days);
+  return dateKeyFromUtc(d);
+}
+
+/* 오늘(아직 안 풀었으면 어제)부터 거슬러 올라가며 연속 참여 일수를 센다. */
+function dailyParticipationStreak() {
+  const map = loadDailyRecord();
+  let key = (map[dailyDate] && typeof map[dailyDate].score === 'number') ? dailyDate : shiftDateKey(dailyDate, -1);
+  let days = 0;
+  while (days < 400) {
+    const entry = map[key];
+    if (!entry || typeof entry.score !== 'number') break;
+    days++;
+    key = shiftDateKey(key, -1);
+  }
+  return days;
+}
+
 function saveDailyResult() {
   try {
     const map = loadDailyRecord();
@@ -182,6 +207,15 @@ function renderDailyCard() {
       : '매일 자정에 바뀌는 5문항. 같은 날에는 누구에게나 같은 문제가 나옵니다.';
   }
   if (startEl) startEl.textContent = done ? '오늘의 5문항 다시 풀기 →' : '오늘의 5문항 시작 →';
+  const streakEl = document.getElementById('dailyStreak');
+  if (streakEl) {
+    const streak = dailyParticipationStreak();
+    const tomorrow = kstDateLabel(shiftDateKey(dailyDate, 1));
+    streakEl.hidden = false;
+    streakEl.innerHTML = streak > 0
+      ? `🔥 오늘의 챌린지 <strong>${streak}일 연속</strong> 참여 중 · 내일(${tomorrow}) 0시에 새 5문항`
+      : `내일(${tomorrow}) 0시에 새 5문항이 열립니다`;
+  }
 }
 
 function setupDailyMode() {
@@ -555,10 +589,12 @@ function renderDailyBox(prevEntry) {
   const note = prevScore === null
     ? '오늘 첫 기록을 남겼습니다!'
     : (score > prevScore ? `오늘 기록 ${prevScore}점 → ${score}점 갱신!` : `오늘 최고 ${bestToday}점`);
+  const streak = dailyParticipationStreak();
   box.hidden = false;
   box.innerHTML = `<span class="daily-result-label">📅 ${kstDateLabel(dailyDate)} 오늘의 챌린지</span>`
     + `<span class="daily-result-score">${score} / ${round.length}점</span>`
-    + `<span class="daily-result-note">${note}</span>`;
+    + `<span class="daily-result-note">${note}${streak > 1 ? ` · 🔥 ${streak}일 연속 참여` : ''}</span>`
+    + `<span class="daily-result-next">내일(${kstDateLabel(shiftDateKey(dailyDate, 1))}) 0시에 새 5문항이 열립니다</span>`;
 }
 
 function escapeHtml(text) {
