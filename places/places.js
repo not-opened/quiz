@@ -3,10 +3,46 @@ const ITEMS=[{"id":"q0I9xRfgG1Y","answer":"오다이바","choices":["요코하�
 const DECKS=[{"key":"first","name":"1탄 · 국내외 명소","start":0,"end":5},{"key":"second","name":"2탄 · 항구에서 경기장까지","start":5,"end":10},{"key":"third","name":"3탄 · 오래된 건축","start":10,"end":15},{"key":"fourth","name":"4탄 · 궁과 성문","start":15,"end":19},{"key":"fifth","name":"5탄 · 돌로 쌓은 명소","start":19,"end":23},{"key":"all","name":"23문제 한 번에","start":0,"end":23}];
 const $=id=>document.getElementById(id);
 let deck=null,run=[],index=0,points=0,answered=false;
+const SAVE_PREFIX='notopened.places.v1.';
+const questionsFor=d=>ITEMS.slice(d.start,d.end);
+const signature=questions=>questions.map(q=>q.id).join(',');
+function loadGame(d){
+  try{
+    const state=JSON.parse(localStorage.getItem(SAVE_PREFIX+d.key));
+    const questions=questionsFor(d);
+    if(!state||state.signature!==signature(questions)||!Number.isInteger(state.index)||state.index<0||state.index>=questions.length
+       ||!Number.isInteger(state.points)||state.points<0||!Number.isFinite(state.savedAt))return null;
+    if(state.choice!==null&&!questions[state.index].choices.includes(state.choice))return null;
+    const currentPoint=state.choice===questions[state.index].answer?1:0;
+    if(state.points<currentPoint||state.points>state.index+currentPoint)return null;
+    return state;
+  }catch{return null;}
+}
+function saveGame(choice){
+  try{localStorage.setItem(SAVE_PREFIX+deck.key,JSON.stringify({signature:signature(run),index,points,choice,savedAt:Date.now()}));}catch{}
+}
+function clearGame(key){
+  try{localStorage.removeItem(SAVE_PREFIX+key);}catch{}
+}
+let latest=null;
+function renderResumes(){
+  latest=null;
+  DECKS.forEach(d=>{
+    const state=loadGame(d), size=d.end-d.start;
+    const small=document.querySelector('[data-key="'+d.key+'"] small');
+    small.textContent=state?`이어 풀기 · ${state.index+1}/${size}번 문제`:size+'문제'+(d.key==='all'?' · 전체 도전':'');
+    if(state&&(!latest||state.savedAt>latest.state.savedAt))latest={deck:d,state};
+  });
+  $('resume-card').hidden=!latest;
+  if(latest){
+    const {deck:d,state}=latest;
+    put('resume-info',`${d.name} · ${state.index+1}번 문제 / ${d.end-d.start}문제`);
+  }
+}
 const view=(id)=>['choose','game','result'].forEach(x=>$(x).hidden=x!==id);
 const put=(id,text)=>{$(id).textContent=text;};
 function addLink(el,label,url){const a=document.createElement('a');a.textContent=label;a.href=url;a.target='_blank';a.rel='noopener noreferrer';el.append(a);}
-function showQuestion(){
+function showQuestion(savedChoice=null){
   const q=run[index];
   answered=false;view('game');$('feedback').hidden=true;
   put('set-name',deck.name);put('count',`${index+1} / ${run.length}`);
@@ -14,11 +50,14 @@ function showQuestion(){
   put('prompt',q.prompt);$('photo').alt='정답을 가린 장소 사진. 사진을 보기 어렵다면 아래 질문의 글 단서를 참고하세요.';$('photo').src='./frames/'+q.id+'.webp';
   $('choices').replaceChildren();
   q.choices.forEach((choice,i)=>{const b=document.createElement('button');b.type='button';b.textContent=String.fromCharCode(65+i)+'. '+choice;b.addEventListener('click',()=>answer(choice,b));$('choices').append(b);});
-  $('prompt').focus();
+  const previous=q.choices.indexOf(savedChoice);
+  if(previous>=0)answer(savedChoice,$('choices').children[previous],true);
+  else $('prompt').focus();
 }
-function answer(choice,b){
+function answer(choice,b,restoring=false){
   if(answered)return;
-  answered=true; const q=run[index],ok=q.answer===choice; if(ok)points++;
+  answered=true; const q=run[index],ok=q.answer===choice;
+  if(!restoring){if(ok)points++;saveGame(choice);}
   [...$('choices').children].forEach((el,i)=>{el.disabled=true;if(q.choices[i]===q.answer)el.classList.add('correct');});if(!ok)b.classList.add('incorrect');
   put('verdict',(ok?'정답! ':'정답은 ')+q.answer);put('clue',q.clue);$('short').href='https://www.youtube.com/shorts/'+q.id;
   const cr=$('credit');cr.replaceChildren(document.createTextNode('사진: '+q.author));
@@ -31,11 +70,28 @@ function answer(choice,b){
   $('progress').value=index+1;put('next',index+1===run.length?'점수 보기':'다음 문제');
   $('feedback').hidden=false;$('verdict').setAttribute('tabindex','-1');$('verdict').focus();
 }
-function launch(key){deck=DECKS.find(x=>x.key===key);if(!deck)return;run=ITEMS.slice(deck.start,deck.end);index=points=0;showQuestion();}
-function showMenu(){view('choose');document.querySelector('[data-key]').focus();}
-document.querySelectorAll('[data-key]').forEach(b=>b.addEventListener('click',()=>launch(b.dataset.key)));
+function launch(key,resume=false){
+  const d=DECKS.find(x=>x.key===key);if(!d)return;
+  deck=d;run=questionsFor(d);
+  const state=resume?loadGame(d):null;
+  index=state?state.index:0;points=state?state.points:0;
+  showQuestion(state?state.choice:null);
+}
+function showMenu(){
+  renderResumes();view('choose');
+  (latest?$('resume'):document.querySelector('[data-key]')).focus();
+}
+document.querySelectorAll('[data-key]').forEach(b=>b.addEventListener('click',()=>launch(b.dataset.key,true)));
+$('resume').addEventListener('click',()=>{if(latest)launch(latest.deck.key,true);});
+$('restart').addEventListener('click',()=>{if(latest){const key=latest.deck.key;clearGame(key);launch(key);}});
 $('back').addEventListener('click',showMenu);$('more').addEventListener('click',showMenu);
-$('next').addEventListener('click',()=>{if(!answered)return;if(++index<run.length){showQuestion();return;}view('result');put('result-name',deck.name);put('score',`${run.length}문제 중 ${points}문제 정답!`);put('shared','');$('share-url').hidden=true;$('score').focus();});
+$('next').addEventListener('click',()=>{
+  if(!answered)return;
+  if(++index<run.length){saveGame(null);showQuestion();return;}
+  answered=false;clearGame(deck.key);
+  view('result');put('result-name',deck.name);put('score',`${run.length}문제 중 ${points}문제 정답!`);
+  put('shared','');$('share-url').hidden=true;$('score').focus();
+});
 $('again').addEventListener('click',()=>launch(deck.key));
 $('share').addEventListener('click',async()=>{
   const url=new URL('https://notopened.com/quiz/places/');url.searchParams.set('set',deck.key);
@@ -44,4 +100,6 @@ $('share').addEventListener('click',async()=>{
   try{await navigator.clipboard.writeText(text+' '+url.href);put('shared','도전 링크를 복사했어요.');return;}catch{}
   $('share-url').hidden=false;$('share-url').value=url.href;$('share-url').select();put('shared','아래 도전 링크를 복사해 주세요.');
 });
-const selected=new URLSearchParams(location.search).get('set');if(DECKS.some(x=>x.key===selected))launch(selected);
+const selected=new URLSearchParams(location.search).get('set');
+if(DECKS.some(x=>x.key===selected))launch(selected,true);
+else renderResumes();
