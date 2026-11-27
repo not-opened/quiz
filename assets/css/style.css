@@ -76,6 +76,45 @@ header p {
   margin-top: 4px;
 }
 
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: max-content;
+  margin: 0 0 10px;
+  color: #fff;
+  text-decoration: none;
+}
+
+.brand:hover,
+.brand:focus,
+.brand:active,
+.brand:visited {
+  color: #fff;
+  text-decoration: none;
+}
+
+.brand:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
+.brand-logo {
+  display: block;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+}
+
+.brand-name {
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: #fff;
+}
+
 /* 최상단 슬림 유튜브 배너 */
 .yt-banner {
   display: flex;
