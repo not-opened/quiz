@@ -670,6 +670,128 @@ header p {
   white-space: nowrap;
 }
 
+/* 페이지 하단 다른 콘텐츠 — go-chess 카드와 같은 형태 */
+.more-content h3 {
+  font-size: 0.86rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+  text-align: left;
+  color: var(--text-main);
+}
+
+.more-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  text-decoration: none;
+  color: var(--text-main);
+  min-height: 60px;
+}
+
+.more-card:last-child {
+  margin-bottom: 0;
+}
+
+.more-card-body {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.more-card h4 {
+  font-size: 0.84rem;
+  font-weight: 800;
+  margin-bottom: 3px;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.more-card p {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.more-go {
+  font-size: 0.76rem;
+  color: var(--accent);
+  font-weight: 800;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.more-card:hover,
+.more-card:focus,
+.more-card:active,
+.more-card:visited {
+  color: var(--text-main);
+  text-decoration: none;
+}
+
+.more-card:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.music-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.music-card h2 {
+  font-size: 0.92rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+  text-align: left;
+  color: var(--text-main);
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.music-link {
+  display: flex;
+  align-items: center;
+  min-height: 46px;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  background: #082033;
+  color: var(--text-main);
+  text-decoration: none;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.35;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.music-link:hover,
+.music-link:focus,
+.music-link:visited {
+  color: var(--text-main);
+  text-decoration: none;
+}
+
+.music-link:active {
+  background: rgba(56, 189, 248, 0.14);
+  color: var(--accent);
+}
+
+.music-link:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
 /* Portal Footer */
 .portal-footer {
   text-align: center;
