@@ -1052,3 +1052,10 @@ header p {
 .daily-streak[hidden] { display: none; }
 .daily-streak strong { color: #f8fafc; }
 .daily-result-next { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+
+.stat-pill-weak {
+  text-decoration: none;
+  border-color: rgba(239, 68, 68, 0.45);
+  color: #fca5a5;
+}
+.stat-pill-weak:hover { border-color: rgba(239, 68, 68, 0.8); }

@@ -29,8 +29,26 @@ function emptyProgress() {
     bestScore: 0,
     bestRound: 0,
     streakDays: 0,
-    lastPlayDate: null
+    lastPlayDate: null,
+    wrongByCat: {}
   };
+}
+
+function sanitizeWrongByCat(raw) {
+  const out = {};
+  if (!raw || typeof raw !== 'object') return out;
+  QUIZ_CATEGORIES.forEach((c) => {
+    const n = Math.floor(Number(raw[c.slug]) || 0);
+    if (n > 0) out[c.slug] = Math.min(n, 999);
+  });
+  return out;
+}
+
+function weakestCategory() {
+  const entries = Object.entries(progress.wrongByCat || {});
+  if (!entries.length) return null;
+  entries.sort((a, b) => b[1] - a[1]);
+  return { slug: entries[0][0], count: entries[0][1] };
 }
 
 function loadProgress() {
@@ -48,7 +66,8 @@ function loadProgress() {
       bestScore: Math.max(0, Math.floor(Number(saved.bestScore) || 0)),
       bestRound: Math.max(0, Math.floor(Number(saved.bestRound) || 0)),
       streakDays: Math.max(0, Math.floor(Number(saved.streakDays) || 0)),
-      lastPlayDate: typeof saved.lastPlayDate === 'string' ? saved.lastPlayDate : null
+      lastPlayDate: typeof saved.lastPlayDate === 'string' ? saved.lastPlayDate : null,
+      wrongByCat: sanitizeWrongByCat(saved.wrongByCat)
     };
   } catch (e) {
     return base;
@@ -388,6 +407,11 @@ function renderStats() {
   }
   pills.push(`<span class="stat-pill">🎯 ${activeCategory ? '이 주제' : '이번 순환'} <strong>${solved}/${pool.length}</strong></span>`);
 
+  const weak = weakestCategory();
+  if (weak) {
+    pills.push(`<a class="stat-pill stat-pill-weak" href="?cat=${weak.slug}">🎯 약점 ${escapeHtml(categoryLabel(weak.slug))} <strong>${weak.count}</strong></a>`);
+  }
+
   bar.innerHTML = pills.join('');
   bar.hidden = false;
 }
@@ -474,7 +498,12 @@ function selectOption(selectedIdx) {
   });
 
   if (isCorrect) score++;
+  if (isCorrect && progress.wrongByCat[q.slug]) {
+    progress.wrongByCat[q.slug] = Math.max(0, progress.wrongByCat[q.slug] - 1);
+    if (!progress.wrongByCat[q.slug]) delete progress.wrongByCat[q.slug];
+  }
   if (!isCorrect) {
+    progress.wrongByCat[q.slug] = Math.min(999, (progress.wrongByCat[q.slug] || 0) + 1);
     wrongAnswers.push({
       id: q.id,
       slug: q.slug,
