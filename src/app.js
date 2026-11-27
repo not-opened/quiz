@@ -17,6 +17,8 @@ let currentIdx = 0;
 let score = 0;
 let answered = false;
 let wrongAnswers = [];
+let combo = 0;
+let maxCombo = 0;
 
 /* ---------------------------------------------------------------- 상태 저장 */
 
@@ -30,7 +32,8 @@ function emptyProgress() {
     bestRound: 0,
     streakDays: 0,
     lastPlayDate: null,
-    wrongByCat: {}
+    wrongByCat: {},
+    bestCombo: 0
   };
 }
 
@@ -67,7 +70,8 @@ function loadProgress() {
       bestRound: Math.max(0, Math.floor(Number(saved.bestRound) || 0)),
       streakDays: Math.max(0, Math.floor(Number(saved.streakDays) || 0)),
       lastPlayDate: typeof saved.lastPlayDate === 'string' ? saved.lastPlayDate : null,
-      wrongByCat: sanitizeWrongByCat(saved.wrongByCat)
+      wrongByCat: sanitizeWrongByCat(saved.wrongByCat),
+      bestCombo: Math.max(0, Math.floor(Number(saved.bestCombo) || 0))
     };
   } catch (e) {
     return base;
@@ -291,6 +295,8 @@ function shuffle(list) {
 function startRound() {
   roundCycleReset = false;
   wrongAnswers = [];
+  combo = 0;
+  maxCombo = 0;
   if (dailyMode) {
     round = dailyQuestionList(dailyDate);
     currentIdx = 0;
@@ -405,6 +411,9 @@ function renderStats() {
   if (progress.bestRound > 0) {
     pills.push(`<span class="stat-pill">🏆 최고 <strong>${progress.bestScore}/${progress.bestRound}</strong></span>`);
   }
+  if (progress.bestCombo > 1) {
+    pills.push(`<span class="stat-pill">🔥 최고 <strong>${progress.bestCombo}연속</strong></span>`);
+  }
   pills.push(`<span class="stat-pill">🎯 ${activeCategory ? '이 주제' : '이번 순환'} <strong>${solved}/${pool.length}</strong></span>`);
 
   const weak = weakestCategory();
@@ -498,6 +507,9 @@ function selectOption(selectedIdx) {
   });
 
   if (isCorrect) score++;
+  combo = isCorrect ? combo + 1 : 0;
+  if (combo > maxCombo) maxCombo = combo;
+  if (maxCombo > (progress.bestCombo || 0)) progress.bestCombo = maxCombo;
   if (isCorrect && progress.wrongByCat[q.slug]) {
     progress.wrongByCat[q.slug] = Math.max(0, progress.wrongByCat[q.slug] - 1);
     if (!progress.wrongByCat[q.slug]) delete progress.wrongByCat[q.slug];
@@ -530,7 +542,9 @@ function selectOption(selectedIdx) {
   const expText = document.getElementById('expText');
 
   if (expResult) {
-    expResult.textContent = isCorrect ? '✅ 정답' : '❌ 오답';
+    expResult.textContent = isCorrect
+      ? (combo >= 2 ? `✅ 정답 · 🔥 ${combo}연속` : '✅ 정답')
+      : '❌ 오답';
     expResult.style.color = isCorrect ? 'var(--correct)' : 'var(--wrong)';
   }
   if (expText) expText.textContent = `${q.explanation} [출처: ${q.source}]`;
@@ -681,6 +695,7 @@ function renderResultStats() {
       <div class="result-stat"><span class="k">🔥 연속 도전</span><span class="v">${progress.streakDays}일</span></div>
       <div class="result-stat"><span class="k">📚 누적 풀이</span><span class="v">${progress.totalAnswered}문제 · ${accuracy}%</span></div>
       <div class="result-stat"><span class="k">🏆 최고 점수</span><span class="v">${progress.bestScore} / ${progress.bestRound}</span></div>
+      <div class="result-stat"><span class="k">🔥 최대 연속 정답</span><span class="v">${maxCombo}연속${progress.bestCombo > maxCombo ? ` (최고 ${progress.bestCombo})` : ''}</span></div>
       <div class="result-stat"><span class="k">${cycleLabel}</span><span class="v">${cycleValue}</span></div>
     `;
   }
@@ -720,6 +735,8 @@ export function restartQuiz() {
   currentIdx = 0;
   score = 0;
   answered = false;
+  combo = 0;
+  maxCombo = 0;
   const resultCard = document.getElementById('resultCard');
   const quizCard = document.getElementById('quizCard');
   if (resultCard) resultCard.classList.remove('show');
