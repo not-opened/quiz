@@ -26,12 +26,14 @@ let deck=null,run=[],index=0,points=0,answered=false;
 const SAVE_PREFIX='notopened.places.v1.';
 const itemById=new Map(ITEMS.map(q=>[q.id,q]));
 const questionsFor=d=>d.ids?d.ids.map(id=>itemById.get(id)):ITEMS.slice(d.start,d.end);
-const selected=new URLSearchParams(location.search).get('set');
+const params=new URLSearchParams(location.search);
+const selected=params.get('set');
+const challenge=itemById.get(params.get('q'));
 function registerPlaceDeck({key,name,ids}){
   if(!/^region-[a-z-]{1,25}$/.test(key)||typeof name!=='string'||!Array.isArray(ids)||!ids.length
      ||new Set(ids).size!==ids.length||ids.some(id=>!itemById.has(id))||DECKS.some(d=>d.key===key))return false;
   DECKS.push({key,name,ids:[...ids]});
-  if(selected===key)launch(key,true);
+  if(!challenge&&selected===key)launch(key,true);
   else if(!$('choose').hidden)renderResumes();
   return true;
 }
@@ -49,6 +51,7 @@ function loadGame(d){
   }catch{return null;}
 }
 function saveGame(choice){
+  if(deck.single)return;
   try{localStorage.setItem(SAVE_PREFIX+deck.key,JSON.stringify({signature:signature(run),index,points,choice,savedAt:Date.now()}));}catch{}
 }
 function clearGame(key){
@@ -76,6 +79,8 @@ function showQuestion(savedChoice=null){
   document.dispatchEvent(new Event('notopened:place-question'));
   const q=run[index];
   answered=false;view('game');$('feedback').hidden=true;$('visit-note').hidden=true;
+  resetShare('question-shared','question-share-url');
+  put('back',deck.single?'다른 문제 고르기':'다른 묶음 고르기');
   put('set-name',deck.name);put('count',`${index+1} / ${run.length}`);
   $('progress').max=run.length;$('progress').value=index;
   put('prompt',q.prompt);$('photo').alt='정답을 가린 장소 사진. 사진을 보기 어렵다면 아래 질문의 글 단서를 참고하세요.';$('photo').src='./frames/'+q.id+'.webp';
@@ -117,6 +122,10 @@ function launch(key,resume=false){
   index=state?state.index:0;points=state?state.points:0;
   showQuestion(state?state.choice:null);
 }
+function launchChallenge(q){
+  deck={name:'친구가 보낸 문제',single:true};
+  run=[q];index=0;points=0;showQuestion();
+}
 function showMenu(){
   renderResumes();view('choose');
   (latest?$('resume'):document.querySelector('[data-key]')).focus();
@@ -128,17 +137,37 @@ $('back').addEventListener('click',showMenu);$('more').addEventListener('click',
 $('next').addEventListener('click',()=>{
   if(!answered)return;
   if(++index<run.length){saveGame(null);showQuestion();return;}
-  answered=false;clearGame(deck.key);
+  answered=false;if(!deck.single)clearGame(deck.key);
   view('result');put('result-name',deck.name);put('score',`${run.length}문제 중 ${points}문제 정답!`);
-  put('shared','');$('share-url').hidden=true;$('score').focus();
+  resetShare('shared','share-url');
+  $('share').hidden=Boolean(deck.single);
+  put('share-result-question',deck.single?'친구에게 이 문제 보내기':'친구에게 마지막 문제 보내기');
+  $('score').focus();
 });
-$('again').addEventListener('click',()=>launch(deck.key));
-$('share').addEventListener('click',async()=>{
-  const url=new URL('https://notopened.com/quiz/places/');url.searchParams.set('set',deck.key);
+$('again').addEventListener('click',()=>deck.single?launchChallenge(run[0]):launch(deck.key));
+const shareBase='https://notopened.com/quiz/places/';
+function resetShare(status,input){
+  put(status,'');$(input).hidden=true;$(input).value='';
+}
+async function shareLink(url,text,status,input){
+  resetShare(status,input);
+  try{if(navigator.share){await navigator.share({title:'여기 어디게?',text,url});put(status,'공유 창을 열었어요.');return;}}catch(e){if(e.name==='AbortError')return;}
+  try{await navigator.clipboard.writeText(text+' '+url);put(status,'도전 링크를 복사했어요.');return;}catch{}
+  $(input).value=url;$(input).hidden=false;$(input).focus();$(input).select();
+  put(status,'아래 도전 링크를 복사해 주세요.');
+}
+function shareQuestion(q,status,input){
+  const url=new URL(shareBase);url.searchParams.set('q',q.id);
+  return shareLink(url.href,'여기 어디게? 사진 한 장 보고 나랑 같은 문제를 맞혀 봐!',status,input);
+}
+$('share-question').addEventListener('click',()=>shareQuestion(run[index],'question-shared','question-share-url'));
+$('share-result-question').addEventListener('click',()=>shareQuestion(run[run.length-1],'shared','share-url'));
+$('share').addEventListener('click',()=>{
+  if(deck.single)return;
+  const url=new URL(shareBase);url.searchParams.set('set',deck.key);
   const text=`여기 어디게? ${run.length}문제 중 ${points}개 맞혔어요. 같은 문제에 도전해 보세요!`;
-  try{if(navigator.share){await navigator.share({title:'여기 어디게?',text,url:url.href});put('shared','공유 창을 열었어요.');return;}}catch(e){if(e.name==='AbortError')return;}
-  try{await navigator.clipboard.writeText(text+' '+url.href);put('shared','도전 링크를 복사했어요.');return;}catch{}
-  $('share-url').hidden=false;$('share-url').value=url.href;$('share-url').select();put('shared','아래 도전 링크를 복사해 주세요.');
+  return shareLink(url.href,text,'shared','share-url');
 });
-if(DECKS.some(x=>x.key===selected))launch(selected,true);
+if(challenge)launchChallenge(challenge);
+else if(DECKS.some(x=>x.key===selected))launch(selected,true);
 else renderResumes();
